@@ -8,8 +8,8 @@ This project uses **uv** for Python package management. Always use `uv run` to e
 # Run tests
 uv run pytest tests/ -x
 
-# Run server
-uv run uvicorn exsize.app:app --reload
+# Run server (--app-dir src is required for --reload to work on macOS)
+uv run uvicorn --app-dir src exsize.app:app --reload
 
 # Add a dependency
 uv add <package>
