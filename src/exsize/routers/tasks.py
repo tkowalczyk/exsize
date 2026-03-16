@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from exsize.database import get_db
 from exsize.deps import get_current_user
-from exsize.models import Task, User
+from exsize.models import Task, Transaction, User
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
@@ -94,6 +94,16 @@ def approve_task(task_id: int, user: User = Depends(get_current_user), db: Sessi
     if task.status != "completed":
         raise HTTPException(status_code=409, detail="Task is not in completed state")
     task.status = "approved"
+    child = db.query(User).filter(User.id == task.assigned_to).first()
+    child.exbucks_balance += task.exbucks
+    txn = Transaction(
+        user_id=child.id,
+        type="earned",
+        amount=task.exbucks,
+        description=task.name,
+        task_id=task.id,
+    )
+    db.add(txn)
     db.commit()
     db.refresh(task)
     return task

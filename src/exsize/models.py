@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from exsize.database import Base
@@ -34,3 +34,16 @@ class User(Base):
     role: Mapped[str] = mapped_column(String, nullable=False)
     language: Mapped[str] = mapped_column(String, nullable=False, default="en")
     family_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("families.id"), nullable=True)
+    exbucks_balance: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    type: Mapped[str] = mapped_column(String, nullable=False)
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    task_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tasks.id"), nullable=True)
+    created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
