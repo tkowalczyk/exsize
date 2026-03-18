@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 class RegisterRequest(BaseModel):
     email: str
     password: str
-    role: Literal["parent", "child"]
+    role: Literal["parent", "child", "admin"]
     language: Literal["en", "pl"] = "en"
 
 

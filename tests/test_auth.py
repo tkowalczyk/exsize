@@ -29,7 +29,7 @@ def test_register_rejects_invalid_role(client):
     response = client.post("/api/auth/register", json={
         "email": "bad@example.com",
         "password": "pass123",
-        "role": "admin",
+        "role": "superuser",
         "language": "en",
     })
     assert response.status_code == 422

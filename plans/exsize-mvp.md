@@ -112,15 +112,15 @@ Admin-managed reward catalog and child purchase flow. An admin panel (accessible
 
 ### Acceptance criteria
 
-- [ ] Admin can create a reward with name, description, and ExBucks price
-- [ ] Admin can edit and remove rewards
-- [ ] All children across all families see the same reward catalog
-- [ ] Child can browse rewards and see prices
-- [ ] Child can purchase a reward if ExBucks balance is sufficient
-- [ ] Purchase is instant — ExBucks deducted immediately, transaction recorded
-- [ ] Purchase is blocked with clear message if balance is insufficient
-- [ ] Child sees their purchase history
-- [ ] Parent sees all reward purchases across their children
+- [x] Admin can create a reward with name, description, and ExBucks price
+- [x] Admin can edit and remove rewards
+- [x] All children across all families see the same reward catalog
+- [x] Child can browse rewards and see prices
+- [x] Child can purchase a reward if ExBucks balance is sufficient
+- [x] Purchase is instant — ExBucks deducted immediately, transaction recorded
+- [x] Purchase is blocked with clear message if balance is insufficient
+- [x] Child sees their purchase history
+- [x] Parent sees all reward purchases across their children
 
 ---
 
