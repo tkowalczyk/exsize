@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -49,3 +49,35 @@ def list_child_transactions(child_id: int, user: User = Depends(get_current_user
         raise HTTPException(status_code=404, detail="Child not found in your family")
     txns = db.query(Transaction).filter(Transaction.user_id == child_id).order_by(Transaction.created_at.desc()).all()
     return txns
+
+
+class PenaltyRequest(BaseModel):
+    child_id: int
+    amount: int
+    reason: str
+
+
+@router.post("/penalty", response_model=TransactionResponse, status_code=status.HTTP_201_CREATED)
+def assign_penalty(body: PenaltyRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "parent":
+        raise HTTPException(status_code=403, detail="Only parents can assign penalties")
+    if user.family_id is None:
+        raise HTTPException(status_code=400, detail="Must be in a family")
+    child = db.query(User).filter(
+        User.id == body.child_id,
+        User.family_id == user.family_id,
+        User.role == "child",
+    ).first()
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found in your family")
+    child.exbucks_balance -= body.amount
+    txn = Transaction(
+        user_id=child.id,
+        type="penalized",
+        amount=-body.amount,
+        description=body.reason,
+    )
+    db.add(txn)
+    db.commit()
+    db.refresh(txn)
+    return txn

@@ -105,6 +105,7 @@ def _create_and_approve_task(client, parent_token, child_token, child_id, name="
     task = client.post("/api/tasks", json={
         "name": name, "description": f"Complete {name}", "exbucks": exbucks, "assigned_to": child_id,
     }, headers={"Authorization": f"Bearer {parent_token}"}).json()
+    client.patch(f"/api/tasks/{task['id']}/accept", headers={"Authorization": f"Bearer {child_token}"})
     client.patch(f"/api/tasks/{task['id']}/complete", headers={"Authorization": f"Bearer {child_token}"})
     client.patch(f"/api/tasks/{task['id']}/approve", headers={"Authorization": f"Bearer {parent_token}"})
     return task

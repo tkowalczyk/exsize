@@ -14,6 +14,7 @@ class TaskCreateRequest(BaseModel):
     description: str
     exbucks: int
     assigned_to: int
+    day_of_week: str | None = None
 
 
 class TaskResponse(BaseModel):
@@ -23,6 +24,7 @@ class TaskResponse(BaseModel):
     exbucks: int
     status: str
     assigned_to: int
+    day_of_week: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -47,6 +49,7 @@ def create_task(body: TaskCreateRequest, user: User = Depends(get_current_user),
         assigned_to=body.assigned_to,
         family_id=user.family_id,
         created_by=user.id,
+        day_of_week=body.day_of_week,
     )
     db.add(task)
     db.commit()
@@ -64,11 +67,67 @@ def list_tasks(user: User = Depends(get_current_user), db: Session = Depends(get
     return query.all()
 
 
+class TaskEditRequest(BaseModel):
+    name: str
+    description: str
+    exbucks: int
+    assigned_to: int
+    day_of_week: str | None = None
+
+
 def _get_family_task(task_id: int, user: User, db: Session) -> Task:
     task = db.query(Task).filter(Task.id == task_id, Task.family_id == user.family_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
+
+
+@router.put("/{task_id}", response_model=TaskResponse)
+def edit_task(task_id: int, body: TaskEditRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "parent":
+        raise HTTPException(status_code=403, detail="Only parents can edit tasks")
+    task = _get_family_task(task_id, user, db)
+    if task.status in ("completed", "approved"):
+        raise HTTPException(status_code=409, detail="Cannot edit a completed or approved task")
+    child = db.query(User).filter(
+        User.id == body.assigned_to,
+        User.family_id == user.family_id,
+        User.role == "child",
+    ).first()
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found in your family")
+    task.name = body.name
+    task.description = body.description
+    task.exbucks = body.exbucks
+    task.assigned_to = body.assigned_to
+    task.day_of_week = body.day_of_week
+    db.commit()
+    db.refresh(task)
+    return task
+
+
+@router.patch("/{task_id}/accept", response_model=TaskResponse)
+def accept_task(task_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "child":
+        raise HTTPException(status_code=403, detail="Only children can accept tasks")
+    task = _get_family_task(task_id, user, db)
+    if task.assigned_to != user.id:
+        raise HTTPException(status_code=403, detail="Task not assigned to you")
+    if task.status != "assigned":
+        raise HTTPException(status_code=409, detail="Task is not in assigned state")
+    task.status = "accepted"
+    db.commit()
+    db.refresh(task)
+    return task
+
+
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(task_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "parent":
+        raise HTTPException(status_code=403, detail="Only parents can delete tasks")
+    task = _get_family_task(task_id, user, db)
+    db.delete(task)
+    db.commit()
 
 
 @router.patch("/{task_id}/complete", response_model=TaskResponse)
@@ -78,8 +137,8 @@ def complete_task(task_id: int, user: User = Depends(get_current_user), db: Sess
     task = _get_family_task(task_id, user, db)
     if task.assigned_to != user.id:
         raise HTTPException(status_code=403, detail="Task not assigned to you")
-    if task.status != "assigned":
-        raise HTTPException(status_code=409, detail="Task is not in assigned state")
+    if task.status != "accepted":
+        raise HTTPException(status_code=409, detail="Task is not in accepted state")
     task.status = "completed"
     db.commit()
     db.refresh(task)
@@ -111,12 +170,19 @@ def approve_task(task_id: int, user: User = Depends(get_current_user), db: Sessi
 
 @router.patch("/{task_id}/reject", response_model=TaskResponse)
 def reject_task(task_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    if user.role != "parent":
-        raise HTTPException(status_code=403, detail="Only parents can reject tasks")
     task = _get_family_task(task_id, user, db)
-    if task.status != "completed":
-        raise HTTPException(status_code=409, detail="Task is not in completed state")
-    task.status = "assigned"
+    if user.role == "child":
+        if task.assigned_to != user.id:
+            raise HTTPException(status_code=403, detail="Task not assigned to you")
+        if task.status != "assigned":
+            raise HTTPException(status_code=409, detail="Task is not in assigned state")
+        task.status = "rejected"
+    elif user.role == "parent":
+        if task.status != "completed":
+            raise HTTPException(status_code=409, detail="Task is not in completed state")
+        task.status = "assigned"
+    else:
+        raise HTTPException(status_code=403, detail="Not authorized")
     db.commit()
     db.refresh(task)
     return task

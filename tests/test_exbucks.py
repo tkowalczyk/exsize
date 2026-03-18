@@ -42,6 +42,9 @@ def _create_and_approve_task(client, parent_token, child_token, child_id, name="
         "assigned_to": child_id,
     }, headers={"Authorization": f"Bearer {parent_token}"}).json()
 
+    client.patch(f"/api/tasks/{task['id']}/accept", headers={
+        "Authorization": f"Bearer {child_token}",
+    })
     client.patch(f"/api/tasks/{task['id']}/complete", headers={
         "Authorization": f"Bearer {child_token}",
     })
@@ -124,6 +127,48 @@ def test_child_cannot_view_other_child_transactions(client):
         "Authorization": f"Bearer {child_token}",
     })
     assert response.status_code == 403
+
+
+def test_parent_assigns_penalty_to_child(client):
+    parent_token, child_token, child_id = _setup_family_with_child(client)
+
+    # Give the child some balance first
+    _create_and_approve_task(client, parent_token, child_token, child_id, exbucks=10)
+
+    response = client.post("/api/exbucks/penalty", json={
+        "child_id": child_id,
+        "amount": 3,
+        "reason": "Skipped morning stretches",
+    }, headers={"Authorization": f"Bearer {parent_token}"})
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["type"] == "penalized"
+    assert data["amount"] == -3
+    assert data["description"] == "Skipped morning stretches"
+
+    # Balance reduced
+    balance = client.get("/api/exbucks/balance", headers={
+        "Authorization": f"Bearer {child_token}",
+    }).json()
+    assert balance["balance"] == 7
+
+
+def test_penalty_can_make_balance_negative(client):
+    parent_token, child_token, child_id = _setup_family_with_child(client)
+
+    # Child starts at 0, penalty takes them negative
+    response = client.post("/api/exbucks/penalty", json={
+        "child_id": child_id,
+        "amount": 5,
+        "reason": "Didn't clean room",
+    }, headers={"Authorization": f"Bearer {parent_token}"})
+    assert response.status_code == 201
+
+    balance = client.get("/api/exbucks/balance", headers={
+        "Authorization": f"Bearer {child_token}",
+    }).json()
+    assert balance["balance"] == -5
 
 
 def test_unauthenticated_cannot_access_balance(client):

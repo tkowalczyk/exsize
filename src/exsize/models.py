@@ -15,6 +15,7 @@ class Task(Base):
     assigned_to: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     family_id: Mapped[int] = mapped_column(Integer, ForeignKey("families.id"), nullable=False)
     created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    day_of_week: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
 class Family(Base):
