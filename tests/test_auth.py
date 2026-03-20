@@ -82,12 +82,12 @@ def _register_and_login(client, email="user@example.com", password="mypassword",
     return resp.json()["access_token"]
 
 
-def test_dashboard_accessible_with_token(client):
+def test_dashboard_requires_family(client):
     token = _register_and_login(client)
     response = client.get("/api/dashboard", headers={
         "Authorization": f"Bearer {token}",
     })
-    assert response.status_code == 200
+    assert response.status_code == 400
 
 
 def test_dashboard_rejected_without_token(client):
