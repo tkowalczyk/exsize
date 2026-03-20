@@ -36,6 +36,10 @@ class User(Base):
     language: Mapped[str] = mapped_column(String, nullable=False, default="en")
     family_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("families.id"), nullable=True)
     exbucks_balance: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    xp: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    level: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_completion_date: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
 class Transaction(Base):

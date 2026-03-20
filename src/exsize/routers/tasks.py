@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -5,6 +7,7 @@ from sqlalchemy.orm import Session
 from exsize.database import get_db
 from exsize.deps import get_current_user
 from exsize.models import Task, Transaction, User
+from exsize.routers.gamification import compute_level
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
@@ -155,6 +158,19 @@ def approve_task(task_id: int, user: User = Depends(get_current_user), db: Sessi
     task.status = "approved"
     child = db.query(User).filter(User.id == task.assigned_to).first()
     child.exbucks_balance += task.exbucks
+    child.xp += task.exbucks
+    child.level = compute_level(child.xp)
+    # Streak: check if all tasks for this day_of_week are now approved
+    if task.day_of_week:
+        sibling_tasks = db.query(Task).filter(
+            Task.assigned_to == child.id,
+            Task.day_of_week == task.day_of_week,
+        ).all()
+        if all(t.status == "approved" for t in sibling_tasks):
+            today = date.today().isoformat()
+            if child.last_completion_date != today:
+                child.streak += 1
+                child.last_completion_date = today
     txn = Transaction(
         user_id=child.id,
         type="earned",
