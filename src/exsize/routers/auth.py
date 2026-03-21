@@ -18,6 +18,7 @@ class RegisterRequest(BaseModel):
     password: str
     role: Literal["parent", "child", "admin"]
     language: Literal["en", "pl"] = "en"
+    date_of_birth: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -39,6 +40,7 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
         password_hash=hash_password(body.password),
         role=body.role,
         language=body.language,
+        date_of_birth=body.date_of_birth,
     )
     db.add(user)
     db.commit()

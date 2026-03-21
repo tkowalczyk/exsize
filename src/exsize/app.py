@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from exsize.database import Base, engine
-from exsize.routers import auth, dashboard, exbucks, family, gamification, leaderboard, profile, rewards, settings, subscription, tasks
+from exsize.routers import account, auth, dashboard, exbucks, family, gamification, leaderboard, profile, rewards, settings, subscription, tasks
 
 # ensure models are imported so Base.metadata knows about them
 import exsize.models  # noqa: F401
@@ -16,6 +16,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="ExSize", lifespan=lifespan)
+app.include_router(account.router)
 app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(exbucks.router)

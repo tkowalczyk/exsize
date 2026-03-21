@@ -41,6 +41,7 @@ class User(Base):
     level: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_completion_date: Mapped[str | None] = mapped_column(String, nullable=True)
+    date_of_birth: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
 class Transaction(Base):
@@ -70,6 +71,16 @@ class Purchase(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     reward_id: Mapped[int] = mapped_column(Integer, ForeignKey("rewards.id"), nullable=False)
+    created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
+
+
+class DeletionRequest(Base):
+    __tablename__ = "deletion_requests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    child_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    family_id: Mapped[int] = mapped_column(Integer, ForeignKey("families.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
     created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
 
