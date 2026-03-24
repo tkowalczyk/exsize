@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "@/auth";
 import AppLayout from "@/layouts/AppLayout";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import FamilyPage from "@/pages/FamilyPage";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,7 @@ function AuthenticatedRoutes() {
       <Routes>
         <Route path="/dashboard" element={<div>Dashboard</div>} />
         <Route path="/tasks" element={<div>Tasks</div>} />
-        <Route path="/family" element={<div>Family</div>} />
+        <Route path="/family" element={<FamilyPage user={user} />} />
         <Route path="/shop" element={<div>Shop</div>} />
         <Route path="/profile" element={<div>Profile</div>} />
         <Route path="/rewards" element={<div>Rewards</div>} />

@@ -58,11 +58,11 @@ describe("AppLayout", () => {
       language: "en",
     });
     expect(screen.getByText(/tasks/i)).toBeInTheDocument();
+    expect(screen.getByText(/family/i)).toBeInTheDocument();
     expect(screen.getByText(/shop/i)).toBeInTheDocument();
     expect(screen.getByText(/profile/i)).toBeInTheDocument();
     expect(screen.getByText(/settings/i)).toBeInTheDocument();
     expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/family/i)).not.toBeInTheDocument();
   });
 
   it("shows admin nav items (parent nav + Rewards)", () => {

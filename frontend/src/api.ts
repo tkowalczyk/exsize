@@ -68,3 +68,43 @@ export function register(
 export function getMe() {
   return apiFetch<UserResponse>("/api/auth/me");
 }
+
+// --- Family ---
+
+export interface FamilyMember {
+  id: number;
+  email: string;
+  role: string;
+}
+
+export interface FamilyResponse {
+  id: number;
+  pin: string;
+  members: FamilyMember[];
+}
+
+export interface FamilyCreateResponse {
+  id: number;
+  pin: string;
+}
+
+export function getFamily() {
+  return apiFetch<FamilyResponse>("/api/family");
+}
+
+export function createFamily() {
+  return apiFetch<FamilyCreateResponse>("/api/family", { method: "POST" });
+}
+
+export function joinFamily(pin: string) {
+  return apiFetch<{ family_id: number }>("/api/family/join", {
+    method: "POST",
+    body: JSON.stringify({ pin }),
+  });
+}
+
+export function removeFamilyMember(userId: number) {
+  return apiFetch<{ detail: string }>(`/api/family/members/${userId}`, {
+    method: "DELETE",
+  });
+}

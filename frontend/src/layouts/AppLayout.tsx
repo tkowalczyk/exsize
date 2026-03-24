@@ -13,6 +13,7 @@ const NAV_ITEMS: Record<string, { label: string; to: string }[]> = {
   ],
   child: [
     { label: "Tasks", to: "/tasks" },
+    { label: "Family", to: "/family" },
     { label: "Shop", to: "/shop" },
     { label: "Profile", to: "/profile" },
     { label: "Settings", to: "/settings" },
