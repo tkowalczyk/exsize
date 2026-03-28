@@ -381,3 +381,35 @@ export interface DashboardResponse {
 export function getDashboard() {
   return apiFetch<DashboardResponse>("/api/dashboard");
 }
+
+// --- Subscription ---
+
+export interface SubscriptionResponse {
+  plan: string;
+  status: string;
+}
+
+export function getSubscription() {
+  return apiFetch<SubscriptionResponse>("/api/subscription");
+}
+
+export function checkout() {
+  return apiFetch<void>("/api/subscription/checkout", { method: "POST" });
+}
+
+// --- Leaderboard ---
+
+export interface LeaderboardEntry {
+  id: number;
+  email: string;
+  xp: number;
+  level: number;
+}
+
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[];
+}
+
+export function getLeaderboard() {
+  return apiFetch<LeaderboardResponse>("/api/leaderboard");
+}

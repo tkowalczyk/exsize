@@ -8,6 +8,7 @@ import {
   createFamily,
   joinFamily,
   removeFamilyMember,
+  checkout,
   type UserResponse,
   type FamilyCreateResponse,
   ApiError,
@@ -26,6 +27,7 @@ export default function FamilyPage({ user }: FamilyPageProps) {
   const [joinError, setJoinError] = useState("");
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [comingSoon, setComingSoon] = useState(false);
 
   const {
     data: family,
@@ -76,7 +78,7 @@ export default function FamilyPage({ user }: FamilyPageProps) {
     if (showUpgrade) {
       return (
         <div className="flex justify-center pt-12">
-          <Card className="w-full max-w-md border-amber-200 bg-amber-50">
+          <Card className="w-full max-w-md border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
             <CardHeader>
               <CardTitle>Family is Full</CardTitle>
             </CardHeader>
@@ -85,7 +87,24 @@ export default function FamilyPage({ user }: FamilyPageProps) {
                 This family has reached the free tier limit. Ask your parent to
                 upgrade to SizePass to add more members.
               </p>
-              <Button variant="default">Upgrade</Button>
+              {comingSoon ? (
+                <p className="text-sm font-medium text-primary">
+                  SizePass is coming soon!
+                </p>
+              ) : (
+                <Button
+                  variant="default"
+                  onClick={async () => {
+                    try {
+                      await checkout();
+                    } catch {
+                      setComingSoon(true);
+                    }
+                  }}
+                >
+                  Upgrade
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

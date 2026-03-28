@@ -96,7 +96,7 @@ describe("AppLayout", () => {
     expect(screen.queryByText(/profile/i)).not.toBeInTheDocument();
   });
 
-  it("shows child nav items for child role", () => {
+  it("shows child nav items for child role including leaderboard", () => {
     renderLayoutWithUser({
       id: 2,
       email: "child@test.com",
@@ -107,6 +107,7 @@ describe("AppLayout", () => {
     expect(screen.getByText(/family/i)).toBeInTheDocument();
     expect(screen.getByText(/shop/i)).toBeInTheDocument();
     expect(screen.getByText(/profile/i)).toBeInTheDocument();
+    expect(screen.getByText(/leaderboard/i)).toBeInTheDocument();
     expect(screen.getByText(/settings/i)).toBeInTheDocument();
     expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
   });

@@ -11,6 +11,8 @@ import RewardsPage from "@/pages/RewardsPage";
 import ShopPage from "@/pages/ShopPage";
 import ProfilePage from "@/pages/ProfilePage";
 import DashboardPage from "@/pages/DashboardPage";
+import SettingsPage from "@/pages/SettingsPage";
+import LeaderboardPage from "@/pages/LeaderboardPage";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +37,8 @@ function AuthenticatedRoutes() {
         <Route path="/profile" element={<ProfilePage user={user} />} />
         <Route path="/profile/:childId" element={<ProfilePage user={user} />} />
         <Route path="/rewards" element={<RewardsPage user={user} />} />
-        <Route path="/settings" element={<div>Settings</div>} />
+        <Route path="/leaderboard" element={<LeaderboardPage user={user} />} />
+        <Route path="/settings" element={<SettingsPage user={user} />} />
         <Route
           path="*"
           element={

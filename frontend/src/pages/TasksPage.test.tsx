@@ -20,6 +20,7 @@ vi.mock("@/api", async (importOriginal) => {
     editTask: vi.fn(),
     deleteTask: vi.fn(),
     getFamily: vi.fn(),
+    getSubscription: vi.fn(),
     getMe: vi.fn(),
     setToken: vi.fn(),
   };
@@ -35,6 +36,7 @@ import {
   editTask as editTaskMock,
   deleteTask as deleteTaskMock,
   getFamily as getFamilyMock,
+  getSubscription as getSubscriptionMock,
 } from "@/api";
 
 function renderTasksPage(role: "parent" | "child" | "admin" = "parent") {
@@ -550,11 +552,33 @@ describe("TasksPage", () => {
     });
   });
 
+  it("free child sees lock icon instead of photo URL input", async () => {
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "Photo task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
+    ]);
+    vi.mocked(getSubscriptionMock).mockResolvedValue({
+      plan: "free",
+      status: "free",
+    });
+
+    renderTasksPage("child");
+
+    await screen.findByText("Photo task");
+    // Photo input should NOT be visible for free users
+    expect(screen.queryByPlaceholderText(/photo url/i)).not.toBeInTheDocument();
+    // Lock indicator should be visible
+    expect(screen.getByLabelText(/sizepass required/i)).toBeInTheDocument();
+  });
+
   it("child on SizePass can provide photo URL when completing a task", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
       { id: 1, name: "Photo task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
     ]);
+    vi.mocked(getSubscriptionMock).mockResolvedValue({
+      plan: "sizepass",
+      status: "active",
+    });
     vi.mocked(completeTaskMock).mockResolvedValue({
       id: 1, name: "Photo task", description: "", exbucks: 10, status: "completed", assigned_to: 1, day_of_week: null, photo_url: "https://example.com/photo.jpg",
     });

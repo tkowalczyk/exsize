@@ -19,6 +19,7 @@ const NAV_ITEMS: Record<string, { label: string; to: string }[]> = {
     { label: "Family", to: "/family" },
     { label: "ExBucks", to: "/exbucks" },
     { label: "Shop", to: "/shop" },
+    { label: "Leaderboard", to: "/leaderboard" },
     { label: "Profile", to: "/profile" },
     { label: "Settings", to: "/settings" },
   ],

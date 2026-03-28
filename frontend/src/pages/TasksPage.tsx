@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Lock } from "lucide-react";
 import {
   getTasks,
   createTask,
@@ -14,6 +15,7 @@ import {
   editTask,
   deleteTask,
   getFamily,
+  getSubscription,
   type UserResponse,
   type TaskResponse,
 } from "@/api";
@@ -77,6 +79,15 @@ export default function TasksPage({ user }: TasksPageProps) {
     retry: false,
     enabled: user.role === "parent",
   });
+
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription"],
+    queryFn: getSubscription,
+    retry: false,
+    enabled: user.role === "child",
+  });
+
+  const hasSizePass = subscription?.plan !== "free";
 
   const createMutation = useMutation({
     mutationFn: createTask,
@@ -342,13 +353,17 @@ export default function TasksPage({ user }: TasksPageProps) {
               )}
               {user.role === "child" && task.status === "accepted" && (
                 <>
-                  <Input
-                    placeholder="Photo URL (optional)"
-                    className="w-48"
-                    value={photoUrls[task.id] ?? ""}
-                    onChange={(e) => setPhotoUrls((prev) => ({ ...prev, [task.id]: e.target.value }))}
-                  />
-                  <Button size="sm" onClick={() => completeMutation.mutate({ id: task.id, photoUrl: photoUrls[task.id] || undefined })}>Complete</Button>
+                  {hasSizePass ? (
+                    <Input
+                      placeholder="Photo URL (optional)"
+                      className="w-48"
+                      value={photoUrls[task.id] ?? ""}
+                      onChange={(e) => setPhotoUrls((prev) => ({ ...prev, [task.id]: e.target.value }))}
+                    />
+                  ) : (
+                    <Lock className="h-4 w-4 text-muted-foreground" aria-label="SizePass required" />
+                  )}
+                  <Button size="sm" onClick={() => completeMutation.mutate({ id: task.id, photoUrl: hasSizePass ? (photoUrls[task.id] || undefined) : undefined })}>Complete</Button>
                 </>
               )}
             </div>

@@ -150,6 +150,46 @@ describe("DashboardPage", () => {
     expect(screen.getByText(/bob@test\.com: 1\/2/)).toBeInTheDocument();
   });
 
+  it("shows advanced stats (XP, level per child) for SizePass parent", async () => {
+    vi.mocked(getDashboardMock).mockResolvedValue({
+      children: [
+        { id: 2, email: "alice@test.com", tasks_completed_percent: 75, streak: 3, exbucks_earned: 50, exbucks_spent: 20 },
+      ],
+      weekly_overview: {},
+      advanced_stats: {
+        total_xp_earned: 800,
+        best_streak: 7,
+        children: [
+          { id: 2, email: "alice@test.com", total_tasks: 10, approved_tasks: 8, xp: 500, level: 5 },
+        ],
+      },
+    });
+
+    renderDashboard();
+
+    expect(await screen.findByText("Advanced Stats")).toBeInTheDocument();
+    expect(screen.getByText("800")).toBeInTheDocument(); // total XP
+    expect(screen.getByText("7")).toBeInTheDocument(); // best streak
+    expect(screen.getByText("500 XP")).toBeInTheDocument(); // child XP
+    expect(screen.getByText("Level 5")).toBeInTheDocument(); // child level
+  });
+
+  it("shows upgrade indicator when advanced_stats is null (free parent)", async () => {
+    vi.mocked(getDashboardMock).mockResolvedValue({
+      children: [
+        { id: 2, email: "alice@test.com", tasks_completed_percent: 75, streak: 3, exbucks_earned: 50, exbucks_spent: 20 },
+      ],
+      weekly_overview: {},
+      advanced_stats: null,
+    });
+
+    renderDashboard();
+
+    await screen.findByText("alice@test.com");
+    expect(screen.getByText(/advanced stats/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /upgrade/i })).toBeInTheDocument();
+  });
+
   it("E2E: parent sees dashboard → approves task → stats update", async () => {
     // Step 1: Parent sees initial dashboard
     const initialData: DashboardResponse = {

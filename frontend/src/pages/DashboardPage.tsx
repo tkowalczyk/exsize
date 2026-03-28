@@ -1,12 +1,24 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDashboard, type UserResponse, type DashboardDayChild } from "@/api";
+import { Button } from "@/components/ui/button";
+import { getDashboard, checkout, type UserResponse, type DashboardDayChild } from "@/api";
 
 interface DashboardPageProps {
   user: UserResponse;
 }
 
 export default function DashboardPage({ user }: DashboardPageProps) {
+  const [comingSoon, setComingSoon] = useState(false);
+
+  async function handleUpgrade() {
+    try {
+      await checkout();
+    } catch {
+      setComingSoon(true);
+    }
+  }
+
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: getDashboard,
@@ -53,6 +65,59 @@ export default function DashboardPage({ user }: DashboardPageProps) {
             </Card>
           ))}
         </div>
+      )}
+
+      {data && data.advanced_stats && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Advanced Stats</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Total XP Earned</span>
+                <p className="text-lg font-semibold">{data.advanced_stats.total_xp_earned}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Best Streak</span>
+                <p className="text-lg font-semibold">{data.advanced_stats.best_streak}</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {data.advanced_stats.children.map((child) => (
+                <div key={child.id} className="flex items-center justify-between rounded border p-2">
+                  <span className="font-medium">{child.email}</span>
+                  <div className="flex gap-3 text-sm">
+                    <span>{child.xp} XP</span>
+                    <span>Level {child.level}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {data && !data.advanced_stats && data.children.length > 0 && (
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <CardHeader>
+            <CardTitle>Advanced Stats</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Upgrade to SizePass to see XP, levels, and detailed stats per child.
+            </p>
+            {comingSoon ? (
+              <p className="text-sm font-medium text-primary">
+                SizePass is coming soon!
+              </p>
+            ) : (
+              <Button variant="default" onClick={handleUpgrade}>
+                Upgrade to SizePass
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {data && Object.keys(data.weekly_overview).length > 0 && (
