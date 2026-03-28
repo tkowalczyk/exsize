@@ -9,6 +9,7 @@ dependencies = [
     "httpx>=0.28",
     "bcrypt>=4.0",
     "pyjwt>=2.9",
+    "python-dotenv>=1.2.2",
 ]
 
 [dependency-groups]

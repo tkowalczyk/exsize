@@ -10,7 +10,7 @@ import { useAuth } from "@/auth";
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"parent" | "child" | "admin">("parent");
+  const [role, setRole] = useState<"parent" | "child">("parent");
   const [error, setError] = useState("");
   const { handleLogin } = useAuth();
   const navigate = useNavigate();
@@ -64,13 +64,12 @@ export default function RegisterPage() {
                 id="role"
                 value={role}
                 onChange={(e) =>
-                  setRole(e.target.value as "parent" | "child" | "admin")
+                  setRole(e.target.value as "parent" | "child")
                 }
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
               >
                 <option value="parent">Parent</option>
                 <option value="child">Child</option>
-                <option value="admin">Admin</option>
               </select>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}

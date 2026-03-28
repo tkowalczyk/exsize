@@ -2,7 +2,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getSubscription, checkout, type UserResponse } from "@/api";
+import {
+  getSubscription,
+  checkout,
+  requestAccountDeletion,
+  deleteOwnAccount,
+  type UserResponse,
+} from "@/api";
+import { useAuth } from "@/auth";
 
 interface SettingsPageProps {
   user: UserResponse;
@@ -10,6 +17,9 @@ interface SettingsPageProps {
 
 export default function SettingsPage({ user }: SettingsPageProps) {
   const [comingSoon, setComingSoon] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletionRequested, setDeletionRequested] = useState(false);
+  const { logout } = useAuth();
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription"],
@@ -64,6 +74,89 @@ export default function SettingsPage({ user }: SettingsPageProps) {
                 </div>
               )}
             </>
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Account</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {user.role === "child" && !deletionRequested && !showDeleteConfirm && (
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              Request Account Deletion
+            </Button>
+          )}
+          {user.role === "child" && showDeleteConfirm && (
+            <div className="rounded border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
+              <p className="text-sm">
+                This action cannot be undone. Your parent will be asked to
+                approve the deletion of your account and all your data.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={async () => {
+                    await requestAccountDeletion();
+                    setShowDeleteConfirm(false);
+                    setDeletionRequested(true);
+                  }}
+                >
+                  Confirm
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+          {user.role === "child" && deletionRequested && (
+            <p className="text-sm text-muted-foreground">
+              Your deletion request has been sent to your parent for approval.
+            </p>
+          )}
+          {user.role === "parent" && !showDeleteConfirm && (
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              Delete My Account
+            </Button>
+          )}
+          {user.role === "parent" && showDeleteConfirm && (
+            <div className="rounded border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
+              <p className="text-sm">
+                This action cannot be undone. Your account and all your data
+                will be permanently deleted.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={async () => {
+                    await deleteOwnAccount();
+                    logout();
+                  }}
+                >
+                  Confirm
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

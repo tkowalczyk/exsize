@@ -11,12 +11,17 @@ vi.mock("@/api", async (importOriginal) => {
   return {
     ...actual,
     login: vi.fn(),
+    adminLogin: vi.fn(),
     getMe: vi.fn(),
     setToken: vi.fn(),
   };
 });
 
-import { login as loginMock, getMe as getMeMock } from "@/api";
+import {
+  login as loginMock,
+  adminLogin as adminLoginMock,
+  getMe as getMeMock,
+} from "@/api";
 
 function renderLoginWithRoutes() {
   const queryClient = new QueryClient({
@@ -124,6 +129,79 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /login/i }));
 
     expect(await screen.findByText(/invalid credentials/i)).toBeInTheDocument();
+  });
+
+  it("hides email/password and shows admin secret when Login as Admin is checked", async () => {
+    const user = userEvent.setup();
+    renderLoginWithRoutes();
+
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/admin secret/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("checkbox", { name: /login as admin/i }));
+
+    expect(screen.queryByLabelText(/email/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/admin secret/i)).toBeInTheDocument();
+  });
+
+  it("calls adminLogin API with secret when logging in as admin", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminLoginMock).mockResolvedValue({
+      access_token: "admin-token",
+      token_type: "bearer",
+    });
+    vi.mocked(getMeMock).mockResolvedValue({
+      id: 1,
+      email: "admin@test.com",
+      role: "admin",
+      language: "en",
+    });
+
+    renderLoginWithRoutes();
+
+    await user.click(screen.getByRole("checkbox", { name: /login as admin/i }));
+    await user.type(screen.getByLabelText(/admin secret/i), "my-secret");
+    await user.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(adminLoginMock).toHaveBeenCalledWith("my-secret");
+    expect(loginMock).not.toHaveBeenCalled();
+  });
+
+  it("redirects admin to /dashboard after login", async () => {
+    const user = userEvent.setup();
+    vi.mocked(adminLoginMock).mockResolvedValue({
+      access_token: "admin-token",
+      token_type: "bearer",
+    });
+    vi.mocked(getMeMock).mockResolvedValue({
+      id: 1,
+      email: "admin@test.com",
+      role: "admin",
+      language: "en",
+    });
+
+    renderLoginWithRoutes();
+
+    await user.click(screen.getByRole("checkbox", { name: /login as admin/i }));
+    await user.type(screen.getByLabelText(/admin secret/i), "my-secret");
+    await user.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(await screen.findByText(/parent dashboard/i)).toBeInTheDocument();
+  });
+
+  it("restores email/password fields when unchecking Login as Admin", async () => {
+    const user = userEvent.setup();
+    renderLoginWithRoutes();
+
+    await user.click(screen.getByRole("checkbox", { name: /login as admin/i }));
+    expect(screen.queryByLabelText(/email/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("checkbox", { name: /login as admin/i }));
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/admin secret/i)).not.toBeInTheDocument();
   });
 
   it("has a link to register page", () => {

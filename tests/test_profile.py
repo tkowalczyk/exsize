@@ -1,4 +1,17 @@
+from exsize.models import User
+from exsize.security import hash_password
+
+
 def _register_and_login(client, email="parent@example.com", password="mypassword", role="parent"):
+    if role == "admin":
+        from exsize.database import get_db
+        from exsize.app import app
+        db = next(app.dependency_overrides[get_db]())
+        admin = User(email=email, password_hash=hash_password(password), role="admin", language="en")
+        db.add(admin)
+        db.commit()
+        resp = client.post("/api/auth/admin-login", json={"admin_secret": "test-admin-secret"})
+        return resp.json()["access_token"]
     client.post("/api/auth/register", json={
         "email": email, "password": password, "role": role,
     })

@@ -25,6 +25,31 @@ def test_register_as_child(client):
     assert response.json()["role"] == "child"
 
 
+def test_register_admin_role_is_rejected(client):
+    response = client.post("/api/auth/register", json={
+        "email": "admin@example.com",
+        "password": "adminpass",
+        "role": "admin",
+    })
+    assert response.status_code == 422
+
+
+def test_admin_login_with_wrong_secret_shows_invalid_credentials(client):
+    resp = client.post("/api/auth/admin-login", json={
+        "admin_secret": "wrong-secret",
+    })
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "Invalid credentials"
+
+
+def test_admin_login_without_admin_account_shows_invalid_credentials(client):
+    resp = client.post("/api/auth/admin-login", json={
+        "admin_secret": "test-admin-secret",
+    })
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "Invalid credentials"
+
+
 def test_register_rejects_invalid_role(client):
     response = client.post("/api/auth/register", json={
         "email": "bad@example.com",

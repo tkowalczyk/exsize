@@ -54,10 +54,17 @@ export function login(email: string, password: string) {
   });
 }
 
+export function adminLogin(adminSecret: string) {
+  return apiFetch<TokenResponse>("/api/auth/admin-login", {
+    method: "POST",
+    body: JSON.stringify({ admin_secret: adminSecret }),
+  });
+}
+
 export function register(
   email: string,
   password: string,
-  role: "parent" | "child" | "admin",
+  role: "parent" | "child",
 ) {
   return apiFetch<UserResponse>("/api/auth/register", {
     method: "POST",
@@ -412,4 +419,42 @@ export interface LeaderboardResponse {
 
 export function getLeaderboard() {
   return apiFetch<LeaderboardResponse>("/api/leaderboard");
+}
+
+// --- Account ---
+
+export interface DeletionRequestResponse {
+  id: number;
+  child_id: number;
+  status: string;
+}
+
+export function deleteChildAccount(childId: number) {
+  return apiFetch<{ detail: string }>(
+    `/api/account/children/${childId}?confirm=true`,
+    { method: "DELETE" },
+  );
+}
+
+export function deleteOwnAccount() {
+  return apiFetch<{ detail: string }>("/api/account/me?confirm=true", {
+    method: "DELETE",
+  });
+}
+
+export function requestAccountDeletion() {
+  return apiFetch<DeletionRequestResponse>("/api/account/deletion-requests", {
+    method: "POST",
+  });
+}
+
+export function getDeletionRequests() {
+  return apiFetch<DeletionRequestResponse[]>("/api/account/deletion-requests");
+}
+
+export function approveDeletionRequest(requestId: number) {
+  return apiFetch<{ detail: string }>(
+    `/api/account/deletion-requests/${requestId}/approve`,
+    { method: "POST" },
+  );
 }

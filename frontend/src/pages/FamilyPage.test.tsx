@@ -15,6 +15,9 @@ vi.mock("@/api", async (importOriginal) => {
     createFamily: vi.fn(),
     joinFamily: vi.fn(),
     removeFamilyMember: vi.fn(),
+    deleteChildAccount: vi.fn(),
+    getDeletionRequests: vi.fn(),
+    approveDeletionRequest: vi.fn(),
     getMe: vi.fn(),
     setToken: vi.fn(),
   };
@@ -25,6 +28,9 @@ import {
   createFamily as createFamilyMock,
   joinFamily as joinFamilyMock,
   removeFamilyMember as removeFamilyMemberMock,
+  deleteChildAccount as deleteChildAccountMock,
+  getDeletionRequests as getDeletionRequestsMock,
+  approveDeletionRequest as approveDeletionRequestMock,
 } from "@/api";
 
 function renderFamilyPage(role: "parent" | "child" | "admin" = "parent") {
@@ -232,6 +238,155 @@ describe("FamilyPage", () => {
     expect(await screen.findByText("parent@test.com")).toBeInTheDocument();
     expect(screen.getByText("child@test.com")).toBeInTheDocument();
     expect(screen.getByText("FAM999")).toBeInTheDocument();
+  });
+
+  it("parent sees delete account button next to child members", async () => {
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "XYZ789",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getDeletionRequestsMock).mockResolvedValue([]);
+
+    renderFamilyPage("parent");
+
+    expect(await screen.findByRole("button", { name: /delete account/i })).toBeInTheDocument();
+  });
+
+  it("parent clicks delete account → sees confirmation → confirms → child deleted", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "XYZ789",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getDeletionRequestsMock).mockResolvedValue([]);
+    vi.mocked(deleteChildAccountMock).mockResolvedValue({ detail: "Deleted" });
+
+    renderFamilyPage("parent");
+
+    await user.click(await screen.findByRole("button", { name: /delete account/i }));
+
+    expect(await screen.findByText(/permanently delete this child/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /confirm/i }));
+
+    expect(deleteChildAccountMock).toHaveBeenCalledWith(2, expect.anything());
+  });
+
+  it("parent sees pending deletion requests section", async () => {
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "XYZ789",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getDeletionRequestsMock).mockResolvedValue([
+      { id: 10, child_id: 2, status: "pending" },
+    ]);
+
+    renderFamilyPage("parent");
+
+    expect(await screen.findByText(/deletion requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/requested account deletion/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /approve/i })).toBeInTheDocument();
+  });
+
+  it("parent approves deletion request → calls API", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "XYZ789",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getDeletionRequestsMock).mockResolvedValue([
+      { id: 10, child_id: 2, status: "pending" },
+    ]);
+    vi.mocked(approveDeletionRequestMock).mockResolvedValue({ detail: "Approved" });
+
+    renderFamilyPage("parent");
+
+    await user.click(await screen.findByRole("button", { name: /approve/i }));
+
+    expect(await screen.findByText(/permanently delete/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /confirm/i }));
+
+    expect(approveDeletionRequestMock).toHaveBeenCalledWith(10, expect.anything());
+  });
+
+  it("no deletion requests section when list is empty", async () => {
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "XYZ789",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getDeletionRequestsMock).mockResolvedValue([]);
+
+    renderFamilyPage("parent");
+
+    await screen.findByText("parent@test.com");
+    expect(screen.queryByText(/deletion requests/i)).not.toBeInTheDocument();
+  });
+
+  it("E2E: child requests deletion → parent sees and approves → child account removed", async () => {
+    const user = userEvent.setup();
+
+    // Step 1: Child requests deletion from settings (tested in SettingsPage tests)
+    // We start from the parent's perspective on the family page
+
+    // Step 2: Parent sees the deletion request on family page
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "XYZ789",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getDeletionRequestsMock).mockResolvedValue([
+      { id: 10, child_id: 2, status: "pending" },
+    ]);
+    vi.mocked(approveDeletionRequestMock).mockResolvedValue({ detail: "Approved" });
+
+    const { unmount } = renderFamilyPage("parent");
+
+    expect(await screen.findByText(/deletion requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/requested account deletion/i)).toBeInTheDocument();
+
+    // Step 3: Parent approves the deletion request
+    await user.click(screen.getByRole("button", { name: /approve/i }));
+    expect(await screen.findByText(/permanently delete/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /confirm/i }));
+
+    expect(approveDeletionRequestMock).toHaveBeenCalledWith(10, expect.anything());
+    unmount();
+
+    // Step 4: After approval, parent sees updated member list (child removed)
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "XYZ789",
+      members: [{ id: 1, email: "parent@test.com", role: "parent" }],
+    });
+    vi.mocked(getDeletionRequestsMock).mockResolvedValue([]);
+
+    renderFamilyPage("parent");
+
+    await screen.findByText("parent@test.com");
+    expect(screen.queryByText("child@test.com")).not.toBeInTheDocument();
+    expect(screen.queryByText(/deletion requests/i)).not.toBeInTheDocument();
   });
 
   it("shows styled upgrade prompt when free tier limit is reached", async () => {

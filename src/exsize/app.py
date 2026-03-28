@@ -1,17 +1,37 @@
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from exsize.database import Base, engine
-from exsize.routers import account, auth, dashboard, exbucks, family, gamification, leaderboard, profile, rewards, settings, subscription, tasks
+load_dotenv()
 
-# ensure models are imported so Base.metadata knows about them
-import exsize.models  # noqa: F401
+from sqlalchemy.orm import Session
+
+from exsize.database import Base, engine, SessionLocal
+from exsize.models import User
+from exsize.routers import account, auth, dashboard, exbucks, family, gamification, leaderboard, profile, rewards, settings, subscription, tasks
+from exsize.security import hash_password
+
+
+def _seed_admin(db: Session) -> None:
+    if not db.query(User).filter(User.role == "admin").first():
+        db.add(User(
+            email="admin@exsize.app",
+            password_hash=hash_password("unused"),
+            role="admin",
+            language="en",
+        ))
+        db.commit()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        _seed_admin(db)
+    finally:
+        db.close()
     yield
 
 

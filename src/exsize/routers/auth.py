@@ -1,4 +1,4 @@
-from enum import Enum
+import os
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 class RegisterRequest(BaseModel):
     email: str
     password: str
-    role: Literal["parent", "child", "admin"]
+    role: Literal["parent", "child"]  # admin cannot self-register
     language: Literal["en", "pl"] = "en"
     date_of_birth: str | None = None
 
@@ -64,6 +64,22 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token(user.id)
+    return TokenResponse(access_token=token)
+
+
+class AdminLoginRequest(BaseModel):
+    admin_secret: str
+
+
+@router.post("/admin-login", response_model=TokenResponse)
+def admin_login(body: AdminLoginRequest, db: Session = Depends(get_db)):
+    expected = os.environ.get("ADMIN_SECRET")
+    if not expected or body.admin_secret != expected:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    admin_user = db.query(User).filter(User.role == "admin").first()
+    if not admin_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token(admin_user.id)
     return TokenResponse(access_token=token)
 
 
