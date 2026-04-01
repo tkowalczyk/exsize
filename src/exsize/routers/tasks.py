@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from exsize.database import get_db
 from exsize.deps import get_current_user, has_sizepass
-from exsize.models import Task, Transaction, User
+from exsize.models import AppSetting, Task, Transaction, User
 from exsize.routers.gamification import compute_level
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -46,6 +46,9 @@ def create_task(body: TaskCreateRequest, user: User = Depends(get_current_user),
     ).first()
     if not child:
         raise HTTPException(status_code=404, detail="Child not found in your family")
+    max_setting = db.query(AppSetting).filter(AppSetting.key == "max_exbucks_per_task").first()
+    if max_setting and body.exbucks > int(max_setting.value):
+        raise HTTPException(status_code=400, detail=f"ExBucks exceeds the max limit of {max_setting.value}")
     task = Task(
         name=body.name,
         description=body.description,
@@ -100,6 +103,9 @@ def edit_task(task_id: int, body: TaskEditRequest, user: User = Depends(get_curr
     ).first()
     if not child:
         raise HTTPException(status_code=404, detail="Child not found in your family")
+    max_setting = db.query(AppSetting).filter(AppSetting.key == "max_exbucks_per_task").first()
+    if max_setting and body.exbucks > int(max_setting.value):
+        raise HTTPException(status_code=400, detail=f"ExBucks exceeds the max limit of {max_setting.value}")
     task.name = body.name
     task.description = body.description
     task.exbucks = body.exbucks

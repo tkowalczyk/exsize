@@ -84,6 +84,13 @@ class DeletionRequest(Base):
     created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
 
+class AppSetting(Base):
+    __tablename__ = "app_settings"
+
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[str] = mapped_column(String, nullable=False)
+
+
 class Subscription(Base):
     __tablename__ = "subscriptions"
 

@@ -112,7 +112,7 @@ describe("AppLayout", () => {
     expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
   });
 
-  it("shows admin nav items (parent nav + Rewards)", () => {
+  it("shows admin nav items (parent nav + Rewards + App Settings)", () => {
     renderLayoutWithUser({
       id: 3,
       email: "admin@test.com",
@@ -123,7 +123,8 @@ describe("AppLayout", () => {
     expect(screen.getByText(/tasks/i)).toBeInTheDocument();
     expect(screen.getByText(/family/i)).toBeInTheDocument();
     expect(screen.getByText(/rewards/i)).toBeInTheDocument();
-    expect(screen.getByText(/settings/i)).toBeInTheDocument();
+    expect(screen.getByText("App Settings")).toBeInTheDocument();
+    expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 
   it("renders children content", () => {

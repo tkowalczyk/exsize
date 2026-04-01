@@ -21,6 +21,7 @@ vi.mock("@/api", async (importOriginal) => {
     deleteTask: vi.fn(),
     getFamily: vi.fn(),
     getSubscription: vi.fn(),
+    getPublicSettings: vi.fn(),
     getMe: vi.fn(),
     setToken: vi.fn(),
   };
@@ -37,6 +38,7 @@ import {
   deleteTask as deleteTaskMock,
   getFamily as getFamilyMock,
   getSubscription as getSubscriptionMock,
+  getPublicSettings as getPublicSettingsMock,
 } from "@/api";
 
 function renderTasksPage(role: "parent" | "child" | "admin" = "parent") {
@@ -708,5 +710,51 @@ describe("TasksPage", () => {
 
     await screen.findByText("Done task");
     expect(screen.getByText(/proof\.jpg/)).toBeInTheDocument();
+  });
+
+  it("shows max ExBucks limit hint on create form for parent", async () => {
+    vi.mocked(getTasksMock).mockResolvedValue([]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getPublicSettingsMock).mockResolvedValue({ max_exbucks_per_task: 50 });
+
+    renderTasksPage("parent");
+
+    expect(await screen.findByText(/max: 50/i)).toBeInTheDocument();
+  });
+
+  it("shows inline error when ExBucks exceeds limit and blocks submit", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getTasksMock).mockResolvedValue([]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(getPublicSettingsMock).mockResolvedValue({ max_exbucks_per_task: 50 });
+
+    renderTasksPage("parent");
+
+    await screen.findByText(/max: 50/i);
+    await user.type(screen.getByLabelText(/exbucks/i), "60");
+
+    // Error shows immediately as user types over limit
+    expect(screen.getByText(/exceeds.*limit/i)).toBeInTheDocument();
+
+    // Fill rest of form and try to submit
+    await user.type(screen.getByLabelText(/name/i), "Task");
+    await user.type(screen.getByLabelText(/description/i), "Desc");
+    await user.selectOptions(screen.getByLabelText(/assign to/i), "2");
+    await user.click(screen.getByRole("button", { name: /create task/i }));
+
+    // Should NOT call createTask
+    expect(createTaskMock).not.toHaveBeenCalled();
   });
 });

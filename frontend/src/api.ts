@@ -421,6 +421,31 @@ export function getLeaderboard() {
   return apiFetch<LeaderboardResponse>("/api/leaderboard");
 }
 
+// --- Admin Settings ---
+
+export interface AppSettingsResponse {
+  max_exbucks_per_task: number;
+}
+
+export interface UpdateAppSettingsRequest {
+  max_exbucks_per_task: number;
+}
+
+export function getAppSettings() {
+  return apiFetch<AppSettingsResponse>("/api/admin/settings");
+}
+
+export function getPublicSettings() {
+  return apiFetch<AppSettingsResponse>("/api/admin/settings/public");
+}
+
+export function updateAppSettings(data: UpdateAppSettingsRequest) {
+  return apiFetch<AppSettingsResponse>("/api/admin/settings", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
 // --- Account ---
 
 export interface DeletionRequestResponse {

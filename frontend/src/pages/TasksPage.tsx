@@ -16,6 +16,7 @@ import {
   deleteTask,
   getFamily,
   getSubscription,
+  getPublicSettings,
   type UserResponse,
   type TaskResponse,
 } from "@/api";
@@ -64,6 +65,7 @@ export default function TasksPage({ user }: TasksPageProps) {
   // Delete confirmation state
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+
   // Photo URL state (per-task, keyed by task id)
   const [photoUrls, setPhotoUrls] = useState<Record<number, string>>({});
 
@@ -86,6 +88,15 @@ export default function TasksPage({ user }: TasksPageProps) {
     retry: false,
     enabled: user.role === "child",
   });
+
+  const { data: appSettings } = useQuery({
+    queryKey: ["public-settings"],
+    queryFn: getPublicSettings,
+    retry: false,
+    enabled: user.role === "parent",
+  });
+
+  const maxExbucks = appSettings?.max_exbucks_per_task;
 
   const hasSizePass = subscription?.plan !== "free";
 
@@ -178,6 +189,9 @@ export default function TasksPage({ user }: TasksPageProps) {
               className="space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
+                if (maxExbucks != null && Number(exbucks) > maxExbucks) {
+                  return;
+                }
                 createMutation.mutate({
                   name,
                   description,
@@ -211,6 +225,11 @@ export default function TasksPage({ user }: TasksPageProps) {
                   value={exbucks}
                   onChange={(e) => setExbucks(e.target.value)}
                 />
+                {maxExbucks != null && Number(exbucks) > maxExbucks ? (
+                  <p className="text-xs text-red-600 mt-1">ExBucks exceeds the limit of {maxExbucks}</p>
+                ) : maxExbucks != null ? (
+                  <p className="text-xs text-muted-foreground mt-1">Max: {maxExbucks}</p>
+                ) : null}
               </div>
               <div>
                 <Label htmlFor="task-assign">Assign to</Label>
