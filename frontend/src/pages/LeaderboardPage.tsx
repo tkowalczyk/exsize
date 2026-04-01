@@ -1,16 +1,14 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getLeaderboard, checkout, ApiError, type UserResponse } from "@/api";
+import { getLeaderboard, ApiError, type UserResponse } from "@/api";
 
 interface LeaderboardPageProps {
   user: UserResponse;
 }
 
 export default function LeaderboardPage({ user }: LeaderboardPageProps) {
-  const [comingSoon, setComingSoon] = useState(false);
-
   const {
     data: leaderboard,
     error,
@@ -20,14 +18,6 @@ export default function LeaderboardPage({ user }: LeaderboardPageProps) {
     queryFn: getLeaderboard,
     retry: false,
   });
-
-  async function handleUpgrade() {
-    try {
-      await checkout();
-    } catch {
-      setComingSoon(true);
-    }
-  }
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -43,15 +33,9 @@ export default function LeaderboardPage({ user }: LeaderboardPageProps) {
             <p className="text-sm text-muted-foreground">
               Sibling leaderboard requires SizePass. Upgrade to access.
             </p>
-            {comingSoon ? (
-              <p className="text-sm font-medium text-primary">
-                SizePass is coming soon!
-              </p>
-            ) : (
-              <Button variant="default" onClick={handleUpgrade}>
-                Upgrade to SizePass
-              </Button>
-            )}
+            <Link to="/sizepass">
+              <Button variant="default">Upgrade to SizePass</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

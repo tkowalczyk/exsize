@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,6 @@ import {
   deleteChildAccount,
   getDeletionRequests,
   approveDeletionRequest,
-  checkout,
   type UserResponse,
   type FamilyCreateResponse,
   ApiError,
@@ -30,7 +30,7 @@ export default function FamilyPage({ user }: FamilyPageProps) {
   const [joinError, setJoinError] = useState("");
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [comingSoon, setComingSoon] = useState(false);
+
   const [deletingChildId, setDeletingChildId] = useState<number | null>(null);
   const [approvingRequestId, setApprovingRequestId] = useState<number | null>(null);
 
@@ -117,24 +117,9 @@ export default function FamilyPage({ user }: FamilyPageProps) {
                 This family has reached the free tier limit. Ask your parent to
                 upgrade to SizePass to add more members.
               </p>
-              {comingSoon ? (
-                <p className="text-sm font-medium text-primary">
-                  SizePass is coming soon!
-                </p>
-              ) : (
-                <Button
-                  variant="default"
-                  onClick={async () => {
-                    try {
-                      await checkout();
-                    } catch {
-                      setComingSoon(true);
-                    }
-                  }}
-                >
-                  Upgrade
-                </Button>
-              )}
+              <Link to="/sizepass">
+                <Button variant="default">Upgrade</Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

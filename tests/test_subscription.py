@@ -20,13 +20,86 @@ def _register_and_login(client, email="parent@example.com", password="mypassword
     return resp.json()["access_token"]
 
 
-def test_checkout_returns_503(client):
-    token = _register_and_login(client)
-    resp = client.post("/api/subscription/checkout", headers={
-        "Authorization": f"Bearer {token}",
+def test_checkout_creates_active_subscription(client):
+    parent_token, family = _setup_family(client)
+    resp = client.post("/api/subscription/checkout", json={"plan": "monthly"}, headers={
+        "Authorization": f"Bearer {parent_token}",
     })
-    assert resp.status_code == 503
-    assert "not yet available" in resp.json()["detail"].lower()
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["plan"] == "monthly"
+    assert data["status"] == "active"
+    # Verify GET returns active subscription
+    resp2 = client.get("/api/subscription", headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    assert resp2.json()["plan"] == "monthly"
+    assert resp2.json()["status"] == "active"
+
+
+def test_checkout_rejects_already_subscribed(client):
+    parent_token, family = _setup_family(client)
+    # First checkout succeeds
+    client.post("/api/subscription/checkout", json={"plan": "monthly"}, headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    # Second checkout fails
+    resp = client.post("/api/subscription/checkout", json={"plan": "yearly"}, headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    assert resp.status_code == 409
+
+
+def test_checkout_rejects_invalid_plan(client):
+    parent_token, family = _setup_family(client)
+    resp = client.post("/api/subscription/checkout", json={"plan": "weekly"}, headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    assert resp.status_code == 422
+
+
+def test_checkout_rejects_child(client):
+    parent_token, child_token, child_id, family = _setup_family_with_child(client)
+    resp = client.post("/api/subscription/checkout", json={"plan": "monthly"}, headers={
+        "Authorization": f"Bearer {child_token}",
+    })
+    assert resp.status_code == 403
+
+
+def test_cancel_deactivates_subscription(client):
+    parent_token, family = _setup_family(client)
+    # Activate subscription
+    client.post("/api/subscription/checkout", json={"plan": "monthly"}, headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    # Cancel it
+    resp = client.post("/api/subscription/cancel", headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "cancelled"
+    # Verify GET returns free
+    resp2 = client.get("/api/subscription", headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    assert resp2.json()["status"] == "cancelled"
+
+
+def test_cancel_without_subscription_returns_404(client):
+    parent_token, family = _setup_family(client)
+    resp = client.post("/api/subscription/cancel", headers={
+        "Authorization": f"Bearer {parent_token}",
+    })
+    assert resp.status_code == 404
+
+
+def test_cancel_rejects_child(client):
+    parent_token, child_token, child_id, family = _setup_family_with_child(client)
+    _add_sizepass(client, family["id"])
+    resp = client.post("/api/subscription/cancel", headers={
+        "Authorization": f"Bearer {child_token}",
+    })
+    assert resp.status_code == 403
 
 
 def test_get_subscription_returns_free(client):

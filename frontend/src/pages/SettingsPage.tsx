@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   getSubscription,
-  checkout,
+  cancelSubscription,
   requestAccountDeletion,
   deleteOwnAccount,
   type UserResponse,
@@ -16,10 +17,11 @@ interface SettingsPageProps {
 }
 
 export default function SettingsPage({ user }: SettingsPageProps) {
-  const [comingSoon, setComingSoon] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletionRequested, setDeletionRequested] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const { logout } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription"],
@@ -27,11 +29,15 @@ export default function SettingsPage({ user }: SettingsPageProps) {
     retry: false,
   });
 
-  async function handleUpgrade() {
+  async function handleCancel() {
+    setCancelling(true);
     try {
-      await checkout();
+      await cancelSubscription();
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
     } catch {
-      setComingSoon(true);
+      // ignore
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -48,29 +54,34 @@ export default function SettingsPage({ user }: SettingsPageProps) {
             <>
               <div className="flex items-center gap-3">
                 <span className="text-lg font-semibold">
-                  {subscription.plan === "free" ? "Free" : "SizePass"}
+                  {subscription.status === "active" ? "SizePass" : "Free"}
                 </span>
-                {subscription.plan !== "free" && (
+                {subscription.status === "active" && (
                   <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     Active
                   </span>
                 )}
               </div>
-              {subscription.plan === "free" && (
+              {subscription.status === "active" && (user.role === "parent" || user.role === "admin") && (
+                <Button
+                  variant="destructive"
+                  disabled={cancelling}
+                  onClick={handleCancel}
+                >
+                  {cancelling ? "Cancelling..." : "Cancel Subscription"}
+                </Button>
+              )}
+              {subscription.status !== "active" && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
                   <p className="mb-2 text-sm text-muted-foreground">
                     Upgrade to SizePass for leaderboards, advanced stats, photo
                     proof, and more.
                   </p>
-                  {comingSoon ? (
-                    <p className="text-sm font-medium text-primary">
-                      SizePass is coming soon!
-                    </p>
-                  ) : (
-                    <Button variant="default" onClick={handleUpgrade}>
+                  <Link to="/sizepass">
+                    <Button variant="default">
                       Upgrade to SizePass
                     </Button>
-                  )}
+                  </Link>
                 </div>
               )}
             </>

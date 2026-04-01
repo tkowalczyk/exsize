@@ -14,6 +14,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import SettingsPage from "@/pages/SettingsPage";
 import AdminSettingsPage from "@/pages/AdminSettingsPage";
 import LeaderboardPage from "@/pages/LeaderboardPage";
+import SizePassPage from "@/pages/SizePassPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ function AuthenticatedRoutes() {
         <Route path="/rewards" element={<RewardsPage user={user} />} />
         <Route path="/admin-settings" element={<AdminSettingsPage user={user} />} />
         <Route path="/leaderboard" element={<LeaderboardPage user={user} />} />
+        <Route path="/sizepass" element={<SizePassPage user={user} />} />
         <Route path="/settings" element={<SettingsPage user={user} />} />
         <Route
           path="*"

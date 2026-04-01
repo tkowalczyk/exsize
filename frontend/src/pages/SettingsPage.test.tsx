@@ -11,7 +11,7 @@ vi.mock("@/api", async (importOriginal) => {
   return {
     ...actual,
     getSubscription: vi.fn(),
-    checkout: vi.fn(),
+    cancelSubscription: vi.fn(),
     getMe: vi.fn(),
     setToken: vi.fn(),
     requestAccountDeletion: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock("@/api", async (importOriginal) => {
 
 import {
   getSubscription as getSubscriptionMock,
-  checkout as checkoutMock,
+  cancelSubscription as cancelSubscriptionMock,
   requestAccountDeletion as requestAccountDeletionMock,
   deleteOwnAccount as deleteOwnAccountMock,
 } from "@/api";
@@ -94,23 +94,29 @@ describe("SettingsPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows coming soon message when upgrade button is clicked (503)", async () => {
-    const user = userEvent.setup();
+  it("upgrade button links to /sizepass", async () => {
     vi.mocked(getSubscriptionMock).mockResolvedValue({
       plan: "free",
       status: "free",
     });
-    vi.mocked(checkoutMock).mockRejectedValue(
-      new (await import("@/api")).ApiError(503, "SizePass is not yet available"),
-    );
 
     renderSettings();
 
-    await user.click(
-      await screen.findByRole("button", { name: /upgrade/i }),
-    );
+    const link = await screen.findByRole("link", { name: /upgrade/i });
+    expect(link).toHaveAttribute("href", "/sizepass");
+  });
 
-    expect(await screen.findByText(/coming soon/i)).toBeInTheDocument();
+  it("shows cancel button for active subscription", async () => {
+    vi.mocked(getSubscriptionMock).mockResolvedValue({
+      plan: "monthly",
+      status: "active",
+    });
+
+    renderSettings("parent");
+
+    expect(
+      await screen.findByRole("button", { name: /cancel subscription/i }),
+    ).toBeInTheDocument();
   });
 
   it("does not show upgrade prompt for SizePass users", async () => {

@@ -6,6 +6,40 @@ import { Button } from "@/components/ui/button";
 import { getBalance, getGamificationProfile, type UserResponse } from "@/api";
 import { useAuth } from "@/auth";
 
+const SIZEPASS_COLORS = [
+  "#ff6b6b", // S - red
+  "#ffa502", // i - orange
+  "#ffd93d", // z - yellow
+  "#6bcb77", // e - green
+  "#4d96ff", // P - blue
+  "#9b59b6", // a - purple
+  "#e84393", // s - pink
+  "#00cec9", // s - teal
+];
+
+function SizePassButton() {
+  const letters = "SizePass".split("");
+  return (
+    <Link
+      to="/sizepass"
+      className="sizepass-btn flex items-center rounded-full border-2 border-primary/50 px-3 py-1 text-sm font-bold transition-transform hover:scale-105"
+    >
+      {letters.map((letter, i) => (
+        <span
+          key={i}
+          className="sizepass-letter"
+          style={{
+            color: SIZEPASS_COLORS[i],
+            animationDelay: `${i * 0.15}s`,
+          }}
+        >
+          {letter}
+        </span>
+      ))}
+    </Link>
+  );
+}
+
 const NAV_ITEMS: Record<string, { label: string; to: string }[]> = {
   parent: [
     { label: "Dashboard", to: "/dashboard" },
@@ -97,6 +131,7 @@ export default function AppLayout({ user, children }: AppLayoutProps) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <SizePassButton />
             {user.role === "child" && profileData != null && (
               <Link
                 to="/profile"

@@ -400,8 +400,17 @@ export function getSubscription() {
   return apiFetch<SubscriptionResponse>("/api/subscription");
 }
 
-export function checkout() {
-  return apiFetch<void>("/api/subscription/checkout", { method: "POST" });
+export function checkout(plan: "monthly" | "yearly") {
+  return apiFetch<SubscriptionResponse>("/api/subscription/checkout", {
+    method: "POST",
+    body: JSON.stringify({ plan }),
+  });
+}
+
+export function cancelSubscription() {
+  return apiFetch<SubscriptionResponse>("/api/subscription/cancel", {
+    method: "POST",
+  });
 }
 
 // --- Leaderboard ---

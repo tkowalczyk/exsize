@@ -1,24 +1,14 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getDashboard, checkout, type UserResponse, type DashboardDayChild } from "@/api";
+import { getDashboard, type UserResponse, type DashboardDayChild } from "@/api";
 
 interface DashboardPageProps {
   user: UserResponse;
 }
 
 export default function DashboardPage({ user }: DashboardPageProps) {
-  const [comingSoon, setComingSoon] = useState(false);
-
-  async function handleUpgrade() {
-    try {
-      await checkout();
-    } catch {
-      setComingSoon(true);
-    }
-  }
-
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: getDashboard,
@@ -107,15 +97,9 @@ export default function DashboardPage({ user }: DashboardPageProps) {
             <p className="text-sm text-muted-foreground">
               Upgrade to SizePass to see XP, levels, and detailed stats per child.
             </p>
-            {comingSoon ? (
-              <p className="text-sm font-medium text-primary">
-                SizePass is coming soon!
-              </p>
-            ) : (
-              <Button variant="default" onClick={handleUpgrade}>
-                Upgrade to SizePass
-              </Button>
-            )}
+            <Link to="/sizepass">
+              <Button variant="default">Upgrade to SizePass</Button>
+            </Link>
           </CardContent>
         </Card>
       )}
