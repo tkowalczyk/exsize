@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getProfile, getChildProfile, type UserResponse, type ProfileResponse } from "@/api";
+import Avatar from "@/components/Avatar";
+import { getProfile, getChildProfile, getEquippedAvatar, type UserResponse, type ProfileResponse } from "@/api";
 
 interface ProfilePageProps {
   user: UserResponse;
@@ -26,17 +27,28 @@ export default function ProfilePage({ user }: ProfilePageProps) {
     return <p>Profiles are for children only.</p>;
   }
 
+  const avatarUserId = childIdNum ?? user.id;
+  const { data: avatarData } = useQuery({
+    queryKey: ["equipped-avatar", avatarUserId],
+    queryFn: () => getEquippedAvatar(avatarUserId),
+    retry: false,
+    enabled: profile != null,
+  });
+
   if (!profile) return null;
 
-  return <ProfileView profile={profile} />;
+  return <ProfileView profile={profile} avatarIcon={avatarData?.icon?.value} avatarBackground={avatarData?.background?.value} />;
 }
 
-function ProfileView({ profile }: { profile: ProfileResponse }) {
+function ProfileView({ profile, avatarIcon, avatarBackground }: { profile: ProfileResponse; avatarIcon?: string | null; avatarBackground?: string | null }) {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Level {profile.level}</CardTitle>
+          <div className="flex items-center gap-4">
+            <Avatar icon={avatarIcon} background={avatarBackground} size="lg" />
+            <CardTitle>Level {profile.level}</CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <p className="text-lg font-semibold">{profile.level_name}</p>

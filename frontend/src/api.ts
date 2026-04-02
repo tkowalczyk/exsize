@@ -476,6 +476,90 @@ export function updateAppSettings(data: UpdateAppSettingsRequest) {
   });
 }
 
+// --- Avatar ---
+
+export interface AvatarItemResponse {
+  id: number;
+  type: "icon" | "background";
+  value: string;
+  label: string;
+  price: number;
+  is_default: boolean;
+  active_in_shop: boolean;
+}
+
+export interface AvatarItemCreateRequest {
+  type: "icon" | "background";
+  value: string;
+  label: string;
+  price: number;
+}
+
+export interface AvatarItemUpdateRequest {
+  label?: string;
+  price?: number;
+  active_in_shop?: boolean;
+}
+
+export interface EquippedAvatarResponse {
+  icon: AvatarItemResponse | null;
+  background: AvatarItemResponse | null;
+}
+
+export function getAvatarItems() {
+  return apiFetch<AvatarItemResponse[]>("/api/avatar/items");
+}
+
+export function getAvatarShop() {
+  return apiFetch<AvatarItemResponse[]>("/api/avatar/shop");
+}
+
+export function getAvatarInventory() {
+  return apiFetch<AvatarItemResponse[]>("/api/avatar/inventory");
+}
+
+export function purchaseAvatarItem(itemId: number) {
+  return apiFetch<{ detail: string }>(`/api/avatar/purchase/${itemId}`, {
+    method: "POST",
+  });
+}
+
+export function equipAvatarItem(itemId: number) {
+  return apiFetch<{ detail: string }>(`/api/avatar/equip/${itemId}`, {
+    method: "POST",
+  });
+}
+
+export function unequipAvatarItem(type: "icon" | "background") {
+  return apiFetch<{ detail: string }>(`/api/avatar/unequip/${type}`, {
+    method: "POST",
+  });
+}
+
+export function createAvatarItem(data: AvatarItemCreateRequest) {
+  return apiFetch<AvatarItemResponse>("/api/avatar/items", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateAvatarItem(itemId: number, data: AvatarItemUpdateRequest) {
+  return apiFetch<AvatarItemResponse>(`/api/avatar/items/${itemId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteAvatarItem(itemId: number) {
+  return apiFetch<{ detail: string }>(`/api/avatar/items/${itemId}`, {
+    method: "DELETE",
+  });
+}
+
+export function getEquippedAvatar(userId: number) {
+  return apiFetch<EquippedAvatarResponse>(`/api/avatar/equipped/${userId}`);
+}
+
 // --- Account ---
 
 export interface DeletionRequestResponse {

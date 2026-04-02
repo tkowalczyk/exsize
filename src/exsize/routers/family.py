@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from exsize.database import get_db
 from exsize.deps import get_current_user, has_sizepass
-from exsize.models import Family, User
+from exsize.models import AvatarItem, Family, User, UserInventory
 
 router = APIRouter(prefix="/api/family", tags=["family"])
 
@@ -74,6 +74,17 @@ def join_family(body: JoinRequest, user: User = Depends(get_current_user), db: S
         if role_count >= limit:
             raise HTTPException(status_code=403, detail=f"Free tier limit reached: max {limit} {user.role}(s). Upgrade to SizePass to add more.")
     user.family_id = family.id
+    if user.role == "child":
+        free_defaults = db.query(AvatarItem).filter(
+            AvatarItem.is_default == True,
+            AvatarItem.price == 0,
+        ).all()
+        for item in free_defaults:
+            db.add(UserInventory(user_id=user.id, avatar_item_id=item.id))
+            if item.type == "icon":
+                user.equipped_icon_id = item.id
+            elif item.type == "background":
+                user.equipped_background_id = item.id
     db.commit()
     return JoinResponse(family_id=family.id)
 

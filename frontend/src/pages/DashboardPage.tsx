@@ -2,10 +2,27 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getDashboard, type UserResponse, type DashboardDayChild } from "@/api";
+import Avatar from "@/components/Avatar";
+import { getDashboard, getEquippedAvatar, type UserResponse, type DashboardDayChild } from "@/api";
 
 interface DashboardPageProps {
   user: UserResponse;
+}
+
+function ChildAvatar({ childId }: { childId: number }) {
+  const { data } = useQuery({
+    queryKey: ["equipped-avatar", childId],
+    queryFn: () => getEquippedAvatar(childId),
+    retry: false,
+  });
+
+  return (
+    <Avatar
+      icon={data?.icon?.value}
+      background={data?.background?.value}
+      size="md"
+    />
+  );
 }
 
 export default function DashboardPage({ user }: DashboardPageProps) {
@@ -30,7 +47,10 @@ export default function DashboardPage({ user }: DashboardPageProps) {
           {data.children.map((child) => (
             <Card key={child.id}>
               <CardHeader>
-                <CardTitle>{child.email}</CardTitle>
+                <div className="flex items-center gap-3">
+                  <ChildAvatar childId={child.id} />
+                  <CardTitle>{child.email}</CardTitle>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3 text-sm">

@@ -8,8 +8,8 @@ load_dotenv()
 from sqlalchemy.orm import Session
 
 from exsize.database import Base, engine, SessionLocal
-from exsize.models import AppSetting, User
-from exsize.routers import account, admin_settings, auth, dashboard, exbucks, family, gamification, leaderboard, profile, rewards, settings, subscription, tasks
+from exsize.models import AppSetting, AvatarItem, User
+from exsize.routers import account, admin_settings, auth, avatar, dashboard, exbucks, family, gamification, leaderboard, profile, rewards, settings, subscription, tasks
 from exsize.security import hash_password
 
 
@@ -30,6 +30,42 @@ def _seed_admin(db: Session) -> None:
         db.commit()
 
 
+DEFAULT_ICONS = [
+    {"value": "⭐", "label": "Star", "price": 10},
+    {"value": "🎮", "label": "Gamepad", "price": 20},
+    {"value": "🏆", "label": "Trophy", "price": 30},
+    {"value": "🎯", "label": "Bullseye", "price": 40},
+    {"value": "🔥", "label": "Fire", "price": 50},
+    {"value": "💎", "label": "Diamond", "price": 75},
+    {"value": "🦄", "label": "Unicorn", "price": 100},
+]
+
+DEFAULT_BACKGROUNDS = [
+    {"value": "#4FC3F7", "label": "Sky Blue", "price": 10},
+    {"value": "#81C784", "label": "Mint Green", "price": 20},
+    {"value": "#FFB74D", "label": "Warm Orange", "price": 30},
+    {"value": "#E57373", "label": "Coral Red", "price": 40},
+    {"value": "#BA68C8", "label": "Purple", "price": 50},
+    {"value": "linear-gradient(135deg, #667eea, #764ba2)", "label": "Galaxy", "price": 75},
+    {"value": "linear-gradient(135deg, #f093fb, #f5576c)", "label": "Sunset", "price": 100},
+]
+
+FREE_DEFAULT_ICON = {"value": "👤", "label": "Default User", "price": 0}
+FREE_DEFAULT_BACKGROUND = {"value": "#F48FB1", "label": "Pink", "price": 0}
+
+
+def _seed_avatar_items(db: Session) -> None:
+    if db.query(AvatarItem).first():
+        return
+    for icon in DEFAULT_ICONS:
+        db.add(AvatarItem(type="icon", is_default=True, active_in_shop=True, **icon))
+    db.add(AvatarItem(type="icon", is_default=True, active_in_shop=True, **FREE_DEFAULT_ICON))
+    for bg in DEFAULT_BACKGROUNDS:
+        db.add(AvatarItem(type="background", is_default=True, active_in_shop=True, **bg))
+    db.add(AvatarItem(type="background", is_default=True, active_in_shop=True, **FREE_DEFAULT_BACKGROUND))
+    db.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
@@ -37,6 +73,7 @@ async def lifespan(app: FastAPI):
     try:
         _seed_admin(db)
         _seed_app_settings(db)
+        _seed_avatar_items(db)
     finally:
         db.close()
     yield
@@ -46,6 +83,7 @@ app = FastAPI(title="ExSize", lifespan=lifespan)
 app.include_router(account.router)
 app.include_router(admin_settings.router)
 app.include_router(auth.router)
+app.include_router(avatar.router)
 app.include_router(dashboard.router)
 app.include_router(exbucks.router)
 app.include_router(family.router)

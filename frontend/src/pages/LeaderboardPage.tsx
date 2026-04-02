@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Avatar from "@/components/Avatar";
 import {
   getLeaderboard,
   getGlobalLeaderboard,
@@ -66,9 +67,7 @@ function LeaderboardRow({
         <span className="w-8 text-center text-lg font-bold text-muted-foreground">
           {entry.position}
         </span>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm">
-          {entry.avatar_icon ?? "👤"}
-        </div>
+        <Avatar icon={entry.avatar_icon} background={entry.avatar_background} size="sm" />
         <div>
           <p className="font-medium">{displayName}</p>
           <p className="text-sm text-muted-foreground">

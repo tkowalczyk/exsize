@@ -1,4 +1,4 @@
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from exsize.database import Base
@@ -42,6 +42,8 @@ class User(Base):
     streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_completion_date: Mapped[str | None] = mapped_column(String, nullable=True)
     date_of_birth: Mapped[str | None] = mapped_column(String, nullable=True)
+    equipped_icon_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("avatar_items.id"), nullable=True)
+    equipped_background_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("avatar_items.id"), nullable=True)
 
 
 class Transaction(Base):
@@ -89,6 +91,28 @@ class AppSetting(Base):
 
     key: Mapped[str] = mapped_column(String, primary_key=True)
     value: Mapped[str] = mapped_column(String, nullable=False)
+
+
+class AvatarItem(Base):
+    __tablename__ = "avatar_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    type: Mapped[str] = mapped_column(String, nullable=False)  # "icon" or "background"
+    value: Mapped[str] = mapped_column(String, nullable=False)
+    label: Mapped[str] = mapped_column(String, nullable=False)
+    price: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    active_in_shop: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
+
+
+class UserInventory(Base):
+    __tablename__ = "user_inventory"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    avatar_item_id: Mapped[int] = mapped_column(Integer, ForeignKey("avatar_items.id"), nullable=False)
+    purchased_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
 
 class Subscription(Base):
