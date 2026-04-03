@@ -432,8 +432,11 @@ export interface LeaderboardEntry {
   id: number;
   email: string;
   nickname: string | null;
+  avatar_icon: string | null;
+  avatar_background: string | null;
   xp: number;
   level: number;
+  streak: number;
 }
 
 export interface LeaderboardResponse {

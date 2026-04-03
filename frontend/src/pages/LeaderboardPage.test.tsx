@@ -189,8 +189,8 @@ describe("LeaderboardPage", () => {
     });
     vi.mocked(getLeaderboardMock).mockResolvedValue({
       entries: [
-        { id: 2, email: "alice@test.com", nickname: null, xp: 500, level: 5 },
-        { id: 3, email: "bob@test.com", nickname: null, xp: 300, level: 3 },
+        { id: 2, email: "alice@test.com", nickname: null, avatar_icon: null, avatar_background: null, xp: 500, level: 5, streak: 0 },
+        { id: 3, email: "bob@test.com", nickname: null, avatar_icon: null, avatar_background: null, xp: 300, level: 3, streak: 0 },
       ],
     });
 
@@ -211,8 +211,8 @@ describe("LeaderboardPage", () => {
     });
     vi.mocked(getLeaderboardMock).mockResolvedValue({
       entries: [
-        { id: 2, email: "alice@test.com", nickname: "AliceX", xp: 500, level: 5 },
-        { id: 3, email: "bob@test.com", nickname: null, xp: 300, level: 3 },
+        { id: 2, email: "alice@test.com", nickname: "AliceX", avatar_icon: null, avatar_background: null, xp: 500, level: 5, streak: 0 },
+        { id: 3, email: "bob@test.com", nickname: null, avatar_icon: null, avatar_background: null, xp: 300, level: 3, streak: 0 },
       ],
     });
 
@@ -225,6 +225,40 @@ describe("LeaderboardPage", () => {
     expect(await screen.findByText("AliceX")).toBeInTheDocument();
     expect(screen.queryByText("alice@test.com")).not.toBeInTheDocument();
     expect(screen.getByText("bob@test.com")).toBeInTheDocument();
+  });
+
+  it("family tab shows avatar and streak", async () => {
+    vi.mocked(getGlobalLeaderboardMock).mockResolvedValue({
+      entries: [],
+      user_entry: null,
+    });
+    vi.mocked(getLeaderboardMock).mockResolvedValue({
+      entries: [
+        {
+          id: 2, email: "alice@test.com", nickname: null,
+          avatar_icon: "🦊", avatar_background: "#ff0000",
+          xp: 500, level: 5, streak: 7,
+        },
+        {
+          id: 3, email: "bob@test.com", nickname: null,
+          avatar_icon: null, avatar_background: null,
+          xp: 300, level: 3, streak: 0,
+        },
+      ],
+    });
+
+    renderLeaderboard();
+    await screen.findByText("Leaderboard");
+
+    const familyBtn = screen.getByRole("button", { name: "Family" });
+    await userEvent.click(familyBtn);
+
+    // Avatar icon rendered
+    expect(await screen.findByText("🦊")).toBeInTheDocument();
+    // Default avatar for bob (no equipped icon)
+    expect(screen.getByText("👤")).toBeInTheDocument();
+    // Streak displayed
+    expect(screen.getByText(/7 streak/)).toBeInTheDocument();
   });
 
   it("shows streak info in global leaderboard entries", async () => {

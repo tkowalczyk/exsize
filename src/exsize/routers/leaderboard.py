@@ -4,7 +4,14 @@ from sqlalchemy.orm import Session
 
 from exsize.database import get_db
 from exsize.deps import get_current_user, has_sizepass
-from exsize.models import User
+from exsize.models import AvatarItem, User
+
+
+def _get_avatar_values(user: User, db: Session) -> tuple[str | None, str | None]:
+    """Return (icon_value, background_value) for a user's equipped avatar."""
+    icon = db.query(AvatarItem.value).filter(AvatarItem.id == user.equipped_icon_id).scalar() if user.equipped_icon_id else None
+    bg = db.query(AvatarItem.value).filter(AvatarItem.id == user.equipped_background_id).scalar() if user.equipped_background_id else None
+    return icon, bg
 
 router = APIRouter(prefix="/api/leaderboard", tags=["leaderboard"])
 
@@ -15,8 +22,11 @@ class LeaderboardEntry(BaseModel):
     id: int
     email: str
     nickname: str | None = None
+    avatar_icon: str | None = None
+    avatar_background: str | None = None
     xp: int
     level: int
+    streak: int
 
 
 class LeaderboardResponse(BaseModel):
@@ -46,15 +56,15 @@ def get_global_leaderboard(user: User = Depends(get_current_user), db: Session =
         User.role == "child",
     ).order_by(User.xp.desc(), User.id).limit(TOP_N).all()
 
-    entries = [
-        GlobalLeaderboardEntry(
+    entries = []
+    for i, c in enumerate(top_children):
+        icon, bg = _get_avatar_values(c, db)
+        entries.append(GlobalLeaderboardEntry(
             id=c.id, email=c.email, nickname=c.nickname,
-            avatar_icon=None, avatar_background=None,
+            avatar_icon=icon, avatar_background=bg,
             xp=c.xp, level=c.level, streak=c.streak,
             position=i + 1,
-        )
-        for i, c in enumerate(top_children)
-    ]
+        ))
 
     top_ids = {c.id for c in top_children}
     user_entry = None
@@ -69,9 +79,10 @@ def get_global_leaderboard(user: User = Depends(get_current_user), db: Session =
             User.xp == user.xp,
             User.id < user.id,
         ).count()
+        u_icon, u_bg = _get_avatar_values(user, db)
         user_entry = GlobalLeaderboardEntry(
             id=user.id, email=user.email, nickname=user.nickname,
-            avatar_icon=None, avatar_background=None,
+            avatar_icon=u_icon, avatar_background=u_bg,
             xp=user.xp, level=user.level, streak=user.streak,
             position=position,
         )
@@ -89,8 +100,12 @@ def get_leaderboard(user: User = Depends(get_current_user), db: Session = Depend
         User.family_id == user.family_id,
         User.role == "child",
     ).order_by(User.xp.desc()).all()
-    entries = [
-        LeaderboardEntry(id=c.id, email=c.email, nickname=c.nickname, xp=c.xp, level=c.level)
-        for c in children
-    ]
+    entries = []
+    for c in children:
+        icon, bg = _get_avatar_values(c, db)
+        entries.append(LeaderboardEntry(
+            id=c.id, email=c.email, nickname=c.nickname,
+            avatar_icon=icon, avatar_background=bg,
+            xp=c.xp, level=c.level, streak=c.streak,
+        ))
     return LeaderboardResponse(entries=entries)

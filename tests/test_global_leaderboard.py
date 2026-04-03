@@ -1,7 +1,7 @@
 import unittest.mock
 
 from exsize.database import get_db
-from exsize.models import Subscription, User
+from exsize.models import AvatarItem, Subscription, User, UserInventory
 
 
 def _register_and_login(client, email="parent@example.com", password="mypassword", role="parent"):
@@ -168,3 +168,28 @@ def test_global_leaderboard_parents_excluded_from_ranking(client):
     emails = [e["email"] for e in entries]
     assert "p@test.com" not in emails
     assert "c@test.com" in emails
+
+
+def test_global_leaderboard_includes_equipped_avatar(client):
+    """When a child has equipped avatar items, global leaderboard returns their values."""
+    _, child_token = _setup_family_with_child(client, "p@test.com", "c@test.com")
+    db = next(client.app.dependency_overrides[get_db]())
+    child = db.query(User).filter(User.email == "c@test.com").first()
+
+    # Create and equip avatar items
+    icon = AvatarItem(type="icon", value="🦊", label="Fox", price=0, is_default=False, active_in_shop=True)
+    bg = AvatarItem(type="background", value="#ff0000", label="Red", price=0, is_default=False, active_in_shop=True)
+    db.add_all([icon, bg])
+    db.flush()
+    db.add(UserInventory(user_id=child.id, avatar_item_id=icon.id))
+    db.add(UserInventory(user_id=child.id, avatar_item_id=bg.id))
+    child.equipped_icon_id = icon.id
+    child.equipped_background_id = bg.id
+    db.commit()
+
+    resp = client.get("/api/leaderboard/global", headers={
+        "Authorization": f"Bearer {child_token}",
+    })
+    entry = resp.json()["entries"][0]
+    assert entry["avatar_icon"] == "🦊"
+    assert entry["avatar_background"] == "#ff0000"

@@ -10,6 +10,7 @@ import {
   ApiError,
   type UserResponse,
   type GlobalLeaderboardEntry,
+  type LeaderboardEntry,
 } from "@/api";
 
 interface LeaderboardPageProps {
@@ -80,6 +81,28 @@ function LeaderboardRow({
   );
 }
 
+function FamilyLeaderboardRow({ entry, position }: { entry: LeaderboardEntry; position: number }) {
+  const displayName = entry.nickname ?? entry.email;
+
+  return (
+    <div className="flex items-center justify-between rounded-lg border p-3">
+      <div className="flex items-center gap-3">
+        <span className="w-8 text-center text-lg font-bold text-muted-foreground">
+          {position}
+        </span>
+        <Avatar icon={entry.avatar_icon} background={entry.avatar_background} size="sm" />
+        <div>
+          <p className="font-medium">{displayName}</p>
+          <p className="text-sm text-muted-foreground">
+            Level {entry.level} · {entry.streak} streak
+          </p>
+        </div>
+      </div>
+      <span className="font-semibold">{entry.xp} XP</span>
+    </div>
+  );
+}
+
 function FamilyTab() {
   const {
     data: leaderboard,
@@ -118,23 +141,7 @@ function FamilyTab() {
       <CardContent className="pt-6">
         <div className="space-y-3">
           {leaderboard.entries.map((entry, index) => (
-            <div
-              key={entry.id}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-bold text-muted-foreground">
-                  #{index + 1}
-                </span>
-                <div>
-                  <p className="font-medium">{entry.nickname ?? entry.email}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Level {entry.level}
-                  </p>
-                </div>
-              </div>
-              <span className="font-semibold">{entry.xp} XP</span>
-            </div>
+            <FamilyLeaderboardRow key={entry.id} entry={entry} position={index + 1} />
           ))}
         </div>
       </CardContent>
