@@ -1,16 +1,59 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   getSubscription,
   cancelSubscription,
   requestAccountDeletion,
   deleteOwnAccount,
+  getProfile,
+  setNickname,
   type UserResponse,
 } from "@/api";
 import { useAuth } from "@/auth";
+
+function NicknameCard({ currentNickname }: { currentNickname: string | null }) {
+  const [nickname, setNicknameValue] = useState(currentNickname ?? "");
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (nick: string) => setNickname(nick),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Nickname</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form
+          className="flex items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (nickname.trim()) mutation.mutate(nickname.trim());
+          }}
+        >
+          <div className="flex-1">
+            <Label htmlFor="nickname">Nickname</Label>
+            <Input
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNicknameValue(e.target.value)}
+            />
+          </div>
+          <Button type="submit">Save Nickname</Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
 
 interface SettingsPageProps {
   user: UserResponse;
@@ -29,6 +72,13 @@ export default function SettingsPage({ user }: SettingsPageProps) {
     retry: false,
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getProfile,
+    retry: false,
+    enabled: user.role === "child",
+  });
+
   async function handleCancel() {
     setCancelling(true);
     try {
@@ -44,6 +94,10 @@ export default function SettingsPage({ user }: SettingsPageProps) {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Settings</h1>
+
+      {user.role === "child" && profile && (
+        <NicknameCard currentNickname={profile.nickname} />
+      )}
 
       <Card>
         <CardHeader>

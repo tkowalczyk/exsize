@@ -16,6 +16,8 @@ vi.mock("@/api", async (importOriginal) => {
     setToken: vi.fn(),
     requestAccountDeletion: vi.fn(),
     deleteOwnAccount: vi.fn(),
+    getProfile: vi.fn(),
+    setNickname: vi.fn(),
   };
 });
 
@@ -24,8 +26,10 @@ import {
   cancelSubscription as cancelSubscriptionMock,
   requestAccountDeletion as requestAccountDeletionMock,
   deleteOwnAccount as deleteOwnAccountMock,
+  getProfile as getProfileMock,
+  setNickname as setNicknameMock,
 } from "@/api";
-import type { UserResponse } from "@/api";
+import type { UserResponse, ProfileResponse } from "@/api";
 
 function renderSettings(role: "parent" | "child" = "parent") {
   const user: UserResponse = {
@@ -246,6 +250,50 @@ describe("SettingsPage", () => {
     await user.click(screen.getByRole("button", { name: /confirm/i }));
 
     expect(deleteOwnAccountMock).toHaveBeenCalled();
+  });
+
+  it("child sees nickname edit form in settings", async () => {
+    vi.mocked(getSubscriptionMock).mockResolvedValue({ plan: "free", status: "free" });
+    vi.mocked(getProfileMock).mockResolvedValue({
+      nickname: "OldNick",
+      xp: 0, level: 1, level_name: "Beginner", progress_percent: 0,
+      xp_for_next_level: 100, streak: 0, exbucks_balance: 0,
+      badges: ["Freemium"], transactions: [],
+    } as ProfileResponse);
+
+    renderSettings("child");
+
+    expect(await screen.findByLabelText(/nickname/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue("OldNick")).toBeInTheDocument();
+  });
+
+  it("child submits nickname change from settings", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getSubscriptionMock).mockResolvedValue({ plan: "free", status: "free" });
+    vi.mocked(getProfileMock).mockResolvedValue({
+      nickname: null,
+      xp: 0, level: 1, level_name: "Beginner", progress_percent: 0,
+      xp_for_next_level: 100, streak: 0, exbucks_balance: 0,
+      badges: ["Freemium"], transactions: [],
+    } as ProfileResponse);
+    vi.mocked(setNicknameMock).mockResolvedValue({ nickname: "NewNick", nickname_changes: 1 });
+
+    renderSettings("child");
+
+    const input = await screen.findByLabelText(/nickname/i);
+    await user.type(input, "NewNick");
+    await user.click(screen.getByRole("button", { name: /save nickname/i }));
+
+    expect(setNicknameMock).toHaveBeenCalledWith("NewNick");
+  });
+
+  it("parent does not see nickname form", async () => {
+    vi.mocked(getSubscriptionMock).mockResolvedValue({ plan: "free", status: "free" });
+
+    renderSettings("parent");
+
+    await screen.findByText("Settings");
+    expect(screen.queryByLabelText(/nickname/i)).not.toBeInTheDocument();
   });
 
   it("E2E: free user sees upgrade prompts → SizePass user sees premium features", async () => {

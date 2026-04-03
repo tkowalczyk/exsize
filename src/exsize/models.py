@@ -42,6 +42,8 @@ class User(Base):
     streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_completion_date: Mapped[str | None] = mapped_column(String, nullable=True)
     date_of_birth: Mapped[str | None] = mapped_column(String, nullable=True)
+    nickname: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
+    nickname_changes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     equipped_icon_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("avatar_items.id"), nullable=True)
     equipped_background_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("avatar_items.id"), nullable=True)
 

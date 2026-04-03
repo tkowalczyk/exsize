@@ -14,6 +14,7 @@ TOP_N = 50
 class LeaderboardEntry(BaseModel):
     id: int
     email: str
+    nickname: str | None = None
     xp: int
     level: int
 
@@ -47,7 +48,7 @@ def get_global_leaderboard(user: User = Depends(get_current_user), db: Session =
 
     entries = [
         GlobalLeaderboardEntry(
-            id=c.id, email=c.email, nickname=None,
+            id=c.id, email=c.email, nickname=c.nickname,
             avatar_icon=None, avatar_background=None,
             xp=c.xp, level=c.level, streak=c.streak,
             position=i + 1,
@@ -69,7 +70,7 @@ def get_global_leaderboard(user: User = Depends(get_current_user), db: Session =
             User.id < user.id,
         ).count()
         user_entry = GlobalLeaderboardEntry(
-            id=user.id, email=user.email, nickname=None,
+            id=user.id, email=user.email, nickname=user.nickname,
             avatar_icon=None, avatar_background=None,
             xp=user.xp, level=user.level, streak=user.streak,
             position=position,
@@ -89,7 +90,7 @@ def get_leaderboard(user: User = Depends(get_current_user), db: Session = Depend
         User.role == "child",
     ).order_by(User.xp.desc()).all()
     entries = [
-        LeaderboardEntry(id=c.id, email=c.email, xp=c.xp, level=c.level)
+        LeaderboardEntry(id=c.id, email=c.email, nickname=c.nickname, xp=c.xp, level=c.level)
         for c in children
     ]
     return LeaderboardResponse(entries=entries)

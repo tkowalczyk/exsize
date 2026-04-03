@@ -1,8 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Avatar from "@/components/Avatar";
-import { getProfile, getChildProfile, getEquippedAvatar, type UserResponse, type ProfileResponse } from "@/api";
+import { getProfile, getChildProfile, getEquippedAvatar, setNickname, type UserResponse, type ProfileResponse } from "@/api";
 
 interface ProfilePageProps {
   user: UserResponse;
@@ -37,17 +41,54 @@ export default function ProfilePage({ user }: ProfilePageProps) {
 
   if (!profile) return null;
 
-  return <ProfileView profile={profile} avatarIcon={avatarData?.icon?.value} avatarBackground={avatarData?.background?.value} />;
+  const isOwnProfile = user.role === "child" && childIdNum == null;
+
+  return <ProfileView profile={profile} avatarIcon={avatarData?.icon?.value} avatarBackground={avatarData?.background?.value} canEdit={isOwnProfile} />;
 }
 
-function ProfileView({ profile, avatarIcon, avatarBackground }: { profile: ProfileResponse; avatarIcon?: string | null; avatarBackground?: string | null }) {
+function NicknameForm({ currentNickname }: { currentNickname: string | null }) {
+  const [nickname, setNicknameValue] = useState(currentNickname ?? "");
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (nick: string) => setNickname(nick),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+
+  return (
+    <form
+      className="flex items-end gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (nickname.trim()) mutation.mutate(nickname.trim());
+      }}
+    >
+      <div className="flex-1">
+        <Label htmlFor="nickname">Nickname</Label>
+        <Input
+          id="nickname"
+          value={nickname}
+          onChange={(e) => setNicknameValue(e.target.value)}
+        />
+      </div>
+      <Button type="submit">Save Nickname</Button>
+    </form>
+  );
+}
+
+function ProfileView({ profile, avatarIcon, avatarBackground, canEdit }: { profile: ProfileResponse; avatarIcon?: string | null; avatarBackground?: string | null; canEdit: boolean }) {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center gap-4">
             <Avatar icon={avatarIcon} background={avatarBackground} size="lg" />
-            <CardTitle>Level {profile.level}</CardTitle>
+            <div>
+              {profile.nickname && <p className="text-lg font-semibold">{profile.nickname}</p>}
+              <CardTitle>Level {profile.level}</CardTitle>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -75,6 +116,17 @@ function ProfileView({ profile, avatarIcon, avatarBackground }: { profile: Profi
           </div>
         </CardContent>
       </Card>
+
+      {canEdit && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Nickname</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <NicknameForm currentNickname={profile.nickname} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

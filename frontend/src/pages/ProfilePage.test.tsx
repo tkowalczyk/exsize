@@ -11,13 +11,16 @@ vi.mock("@/api", async (importOriginal) => {
     ...actual,
     getProfile: vi.fn(),
     getChildProfile: vi.fn(),
+    setNickname: vi.fn(),
   };
 });
 
-import { getProfile as getProfileMock, getChildProfile as getChildProfileMock } from "@/api";
+import { getProfile as getProfileMock, getChildProfile as getChildProfileMock, setNickname as setNicknameMock } from "@/api";
+import userEvent from "@testing-library/user-event";
 import type { UserResponse, ProfileResponse } from "@/api";
 
 const MOCK_PROFILE: ProfileResponse = {
+  nickname: null,
   xp: 450,
   level: 3,
   level_name: "Rookie",
@@ -227,5 +230,51 @@ describe("ProfilePage", () => {
     expect(screen.getByText("Completed: Squats")).toBeInTheDocument();
     expect(screen.getByText("+25")).toBeInTheDocument();
     expect(getChildProfileMock).toHaveBeenCalledWith(2);
+  });
+
+  it("displays nickname when set", async () => {
+    vi.mocked(getProfileMock).mockResolvedValue({
+      ...MOCK_PROFILE,
+      nickname: "CoolKid",
+    });
+
+    renderProfilePage("child");
+
+    expect(await screen.findByText("CoolKid")).toBeInTheDocument();
+  });
+
+  it("shows nickname edit form for child", async () => {
+    vi.mocked(getProfileMock).mockResolvedValue(MOCK_PROFILE);
+
+    renderProfilePage("child");
+
+    expect(await screen.findByLabelText(/nickname/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /save nickname/i })).toBeInTheDocument();
+  });
+
+  it("calls setNickname API when form submitted", async () => {
+    vi.mocked(getProfileMock).mockResolvedValue(MOCK_PROFILE);
+    vi.mocked(setNicknameMock).mockResolvedValue({ nickname: "NewNick", nickname_changes: 1 });
+
+    renderProfilePage("child");
+
+    const input = await screen.findByLabelText(/nickname/i);
+    await userEvent.clear(input);
+    await userEvent.type(input, "NewNick");
+    await userEvent.click(screen.getByRole("button", { name: /save nickname/i }));
+
+    expect(setNicknameMock).toHaveBeenCalledWith("NewNick");
+  });
+
+  it("parent sees child nickname but cannot edit", async () => {
+    vi.mocked(getChildProfileMock).mockResolvedValue({
+      ...MOCK_PROFILE,
+      nickname: "ChildNick",
+    });
+
+    renderProfilePage("parent", 2);
+
+    expect(await screen.findByText("ChildNick")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save nickname/i })).not.toBeInTheDocument();
   });
 });

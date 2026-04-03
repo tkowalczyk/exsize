@@ -4,12 +4,26 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from sqlalchemy import func as sa_func
+
 from exsize.database import get_db
 from exsize.deps import get_current_user, has_sizepass
 from exsize.models import Transaction, User
 from exsize.routers.gamification import LEVEL_NAMES, progress_percent, xp_for_next_level
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])
+
+
+NICKNAME_CHANGE_COST = 50
+
+
+class NicknameRequest(BaseModel):
+    nickname: str
+
+
+class NicknameResponse(BaseModel):
+    nickname: str
+    nickname_changes: int
 
 
 class TransactionItem(BaseModel):
@@ -23,6 +37,7 @@ class TransactionItem(BaseModel):
 
 
 class ProfileResponse(BaseModel):
+    nickname: str | None = None
     xp: int
     level: int
     level_name: str
@@ -58,6 +73,7 @@ def _build_profile(child: User, db: Session) -> ProfileResponse:
         badges = ["Freemium"]
 
     return ProfileResponse(
+        nickname=child.nickname,
         xp=child.xp,
         level=child.level,
         level_name=LEVEL_NAMES[child.level - 1],
@@ -89,3 +105,32 @@ def get_child_profile(child_id: int, user: User = Depends(get_current_user), db:
     if not child:
         raise HTTPException(status_code=404, detail="Child not found in your family")
     return _build_profile(child, db)
+
+
+@router.patch("/nickname", response_model=NicknameResponse)
+def set_nickname(body: NicknameRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "child":
+        raise HTTPException(status_code=403, detail="Only children can set nicknames")
+
+    existing = db.query(User).filter(
+        sa_func.lower(User.nickname) == body.nickname.lower(),
+        User.id != user.id,
+    ).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="Nickname already taken")
+
+    is_first_change = user.nickname_changes == 0
+    if not is_first_change:
+        if user.exbucks_balance < NICKNAME_CHANGE_COST:
+            raise HTTPException(status_code=400, detail="Insufficient ExBucks balance")
+        user.exbucks_balance -= NICKNAME_CHANGE_COST
+        db.add(Transaction(
+            user_id=user.id, type="spent", amount=-NICKNAME_CHANGE_COST,
+            description="Nickname change",
+        ))
+
+    user.nickname = body.nickname
+    user.nickname_changes += 1
+    db.commit()
+    db.refresh(user)
+    return NicknameResponse(nickname=user.nickname, nickname_changes=user.nickname_changes)

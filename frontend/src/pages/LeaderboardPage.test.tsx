@@ -189,8 +189,8 @@ describe("LeaderboardPage", () => {
     });
     vi.mocked(getLeaderboardMock).mockResolvedValue({
       entries: [
-        { id: 2, email: "alice@test.com", xp: 500, level: 5 },
-        { id: 3, email: "bob@test.com", xp: 300, level: 3 },
+        { id: 2, email: "alice@test.com", nickname: null, xp: 500, level: 5 },
+        { id: 3, email: "bob@test.com", nickname: null, xp: 300, level: 3 },
       ],
     });
 
@@ -201,6 +201,29 @@ describe("LeaderboardPage", () => {
     await userEvent.click(familyBtn);
 
     expect(await screen.findByText("alice@test.com")).toBeInTheDocument();
+    expect(screen.getByText("bob@test.com")).toBeInTheDocument();
+  });
+
+  it("family tab shows nickname instead of email when available", async () => {
+    vi.mocked(getGlobalLeaderboardMock).mockResolvedValue({
+      entries: [],
+      user_entry: null,
+    });
+    vi.mocked(getLeaderboardMock).mockResolvedValue({
+      entries: [
+        { id: 2, email: "alice@test.com", nickname: "AliceX", xp: 500, level: 5 },
+        { id: 3, email: "bob@test.com", nickname: null, xp: 300, level: 3 },
+      ],
+    });
+
+    renderLeaderboard();
+    await screen.findByText("Leaderboard");
+
+    const familyBtn = screen.getByRole("button", { name: "Family" });
+    await userEvent.click(familyBtn);
+
+    expect(await screen.findByText("AliceX")).toBeInTheDocument();
+    expect(screen.queryByText("alice@test.com")).not.toBeInTheDocument();
     expect(screen.getByText("bob@test.com")).toBeInTheDocument();
   });
 

@@ -327,6 +327,7 @@ export interface ProfileTransactionItem {
 }
 
 export interface ProfileResponse {
+  nickname: string | null;
   xp: number;
   level: number;
   level_name: string;
@@ -344,6 +345,18 @@ export function getProfile() {
 
 export function getChildProfile(childId: number) {
   return apiFetch<ProfileResponse>(`/api/profile/${childId}`);
+}
+
+export interface NicknameResponse {
+  nickname: string;
+  nickname_changes: number;
+}
+
+export function setNickname(nickname: string) {
+  return apiFetch<NicknameResponse>("/api/profile/nickname", {
+    method: "PATCH",
+    body: JSON.stringify({ nickname }),
+  });
 }
 
 // --- Dashboard ---
@@ -418,6 +431,7 @@ export function cancelSubscription() {
 export interface LeaderboardEntry {
   id: number;
   email: string;
+  nickname: string | null;
   xp: number;
   level: number;
 }

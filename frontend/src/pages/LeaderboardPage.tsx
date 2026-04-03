@@ -127,7 +127,7 @@ function FamilyTab() {
                   #{index + 1}
                 </span>
                 <div>
-                  <p className="font-medium">{entry.email}</p>
+                  <p className="font-medium">{entry.nickname ?? entry.email}</p>
                   <p className="text-sm text-muted-foreground">
                     Level {entry.level}
                   </p>
