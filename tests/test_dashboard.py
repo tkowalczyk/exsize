@@ -112,16 +112,20 @@ def test_dashboard_shows_child_streak(client):
 def test_dashboard_exbucks_earned_and_spent(client):
     parent_token, child_token, child_id = _setup_family_with_child(client)
 
+    # Seed avatars so there's something to buy
+    from exsize.database import get_db
+    db = next(client.app.dependency_overrides[get_db]())
+    from exsize.app import _seed_avatar_items
+    _seed_avatar_items(db)
+
     # Earn via tasks
     _create_and_approve_task(client, parent_token, child_token, child_id, name="Task 1", exbucks=20)
     _create_and_approve_task(client, parent_token, child_token, child_id, name="Task 2", exbucks=30)
 
-    # Spend via reward purchase
-    admin_token = _register_and_login(client, email="admin@example.com", role="admin")
-    reward = client.post("/api/rewards", json={
-        "name": "Sticker", "description": "Cool sticker", "price": 10,
-    }, headers={"Authorization": f"Bearer {admin_token}"}).json()
-    client.post(f"/api/rewards/{reward['id']}/purchase", headers={
+    # Spend via avatar purchase (cheapest non-free icon = 10 EB)
+    from exsize.models import AvatarItem
+    cheap_icon = db.query(AvatarItem).filter(AvatarItem.type == "icon", AvatarItem.price == 10).first()
+    client.post(f"/api/avatar/purchase/{cheap_icon.id}", headers={
         "Authorization": f"Bearer {child_token}",
     })
 
@@ -132,7 +136,7 @@ def test_dashboard_exbucks_earned_and_spent(client):
     assert resp.status_code == 200
     child = resp.json()["children"][0]
     assert child["exbucks_earned"] == 50
-    assert child["exbucks_spent"] == 10
+    assert child["exbucks_spent"] == -10
 
 
 def test_dashboard_weekly_overview(client):

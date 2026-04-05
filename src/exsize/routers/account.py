@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from exsize.database import get_db
 from exsize.deps import get_current_user
-from exsize.models import DeletionRequest, Family, Purchase, Subscription, Task, Transaction, User
+from exsize.models import DeletionRequest, Family, Subscription, Task, Transaction, User
 
 router = APIRouter(prefix="/api/account", tags=["account"])
 
@@ -23,7 +23,6 @@ def _delete_user_data(user_id: int, db: Session):
     """Delete all data associated with a user."""
     db.query(DeletionRequest).filter(DeletionRequest.child_id == user_id).delete()
     db.query(Transaction).filter(Transaction.user_id == user_id).delete()
-    db.query(Purchase).filter(Purchase.user_id == user_id).delete()
     db.query(Task).filter(Task.assigned_to == user_id).delete()
     db.query(Task).filter(Task.created_by == user_id).delete()
     db.query(User).filter(User.id == user_id).delete()

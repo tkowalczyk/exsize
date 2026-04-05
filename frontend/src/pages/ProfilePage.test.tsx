@@ -21,6 +21,7 @@ import type { UserResponse, ProfileResponse } from "@/api";
 
 const MOCK_PROFILE: ProfileResponse = {
   nickname: null,
+  nickname_changes: 0,
   xp: 450,
   level: 3,
   level_name: "Rookie",
@@ -135,33 +136,6 @@ describe("ProfilePage", () => {
     expect(screen.queryByText("Freemium")).not.toBeInTheDocument();
   });
 
-  it("displays transaction history with type, amount, description, and date", async () => {
-    vi.mocked(getProfileMock).mockResolvedValue(MOCK_PROFILE);
-
-    renderProfilePage("child");
-
-    // First transaction
-    expect(await screen.findByText("Completed: Push-ups")).toBeInTheDocument();
-    expect(screen.getByText("+50")).toBeInTheDocument();
-    expect(screen.getByText("earned")).toBeInTheDocument();
-
-    // Second transaction
-    expect(screen.getByText("Purchased: Extra screen time")).toBeInTheDocument();
-    expect(screen.getByText("-30")).toBeInTheDocument();
-    expect(screen.getByText("spent")).toBeInTheDocument();
-  });
-
-  it("shows empty state when no transactions", async () => {
-    vi.mocked(getProfileMock).mockResolvedValue({
-      ...MOCK_PROFILE,
-      transactions: [],
-    });
-
-    renderProfilePage("child");
-
-    expect(await screen.findByText(/no transactions/i)).toBeInTheDocument();
-  });
-
   it("parent can view child's profile via /profile/:childId", async () => {
     vi.mocked(getChildProfileMock).mockResolvedValue(MOCK_PROFILE);
 
@@ -171,7 +145,6 @@ describe("ProfilePage", () => {
     expect(screen.getByText(/rookie/i)).toBeInTheDocument();
     expect(screen.getByText(/5 day streak/i)).toBeInTheDocument();
     expect(screen.getByText("Freemium")).toBeInTheDocument();
-    expect(screen.getByText("Completed: Push-ups")).toBeInTheDocument();
     expect(getChildProfileMock).toHaveBeenCalledWith(2);
   });
 
@@ -183,6 +156,7 @@ describe("ProfilePage", () => {
 
   it("E2E: child views own profile → parent views child's profile → data matches", async () => {
     const sharedProfile: ProfileResponse = {
+      nickname_changes: 0,
       xp: 200,
       level: 2,
       level_name: "Starter",
@@ -209,8 +183,6 @@ describe("ProfilePage", () => {
     expect(screen.getByText(/3 day streak/i)).toBeInTheDocument();
     expect(screen.getByText("Freemium")).toBeInTheDocument();
     expect(screen.getByText("First Task")).toBeInTheDocument();
-    expect(screen.getByText("Completed: Squats")).toBeInTheDocument();
-    expect(screen.getByText("+25")).toBeInTheDocument();
 
     unmount();
 
@@ -227,8 +199,6 @@ describe("ProfilePage", () => {
     expect(screen.getByText(/3 day streak/i)).toBeInTheDocument();
     expect(screen.getByText("Freemium")).toBeInTheDocument();
     expect(screen.getByText("First Task")).toBeInTheDocument();
-    expect(screen.getByText("Completed: Squats")).toBeInTheDocument();
-    expect(screen.getByText("+25")).toBeInTheDocument();
     expect(getChildProfileMock).toHaveBeenCalledWith(2);
   });
 

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from exsize.database import get_db
 from exsize.deps import get_current_user, has_sizepass
-from exsize.models import AppSetting, Task, Transaction, User
+from exsize.models import AppSetting, AvatarItem, Task, Transaction, User
 from exsize.routers.gamification import compute_level
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -29,6 +29,8 @@ class TaskResponse(BaseModel):
     assigned_to: int
     day_of_week: str | None = None
     photo_url: str | None = None
+    avatar_icon: str | None = None
+    avatar_background: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -71,7 +73,32 @@ def list_tasks(user: User = Depends(get_current_user), db: Session = Depends(get
     query = db.query(Task).filter(Task.family_id == user.family_id)
     if user.role == "child":
         query = query.filter(Task.assigned_to == user.id)
-    return query.all()
+    tasks = query.all()
+
+    # Collect avatar data for assigned children
+    child_ids = {t.assigned_to for t in tasks}
+    children = {u.id: u for u in db.query(User).filter(User.id.in_(child_ids)).all()} if child_ids else {}
+    avatar_ids = set()
+    for c in children.values():
+        if c.equipped_icon_id:
+            avatar_ids.add(c.equipped_icon_id)
+        if c.equipped_background_id:
+            avatar_ids.add(c.equipped_background_id)
+    avatars = {a.id: a for a in db.query(AvatarItem).filter(AvatarItem.id.in_(avatar_ids)).all()} if avatar_ids else {}
+
+    result = []
+    for t in tasks:
+        child = children.get(t.assigned_to)
+        icon = avatars.get(child.equipped_icon_id) if child and child.equipped_icon_id else None
+        bg = avatars.get(child.equipped_background_id) if child and child.equipped_background_id else None
+        result.append(TaskResponse(
+            id=t.id, name=t.name, description=t.description, exbucks=t.exbucks,
+            status=t.status, assigned_to=t.assigned_to, day_of_week=t.day_of_week,
+            photo_url=t.photo_url,
+            avatar_icon=icon.value if icon else None,
+            avatar_background=bg.value if bg else None,
+        ))
+    return result
 
 
 class TaskEditRequest(BaseModel):

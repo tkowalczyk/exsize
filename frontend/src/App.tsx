@@ -7,7 +7,6 @@ import RegisterPage from "@/pages/RegisterPage";
 import FamilyPage from "@/pages/FamilyPage";
 import TasksPage from "@/pages/TasksPage";
 import ExBucksPage from "@/pages/ExBucksPage";
-import RewardsPage from "@/pages/RewardsPage";
 import ShopPage from "@/pages/ShopPage";
 import ProfilePage from "@/pages/ProfilePage";
 import DashboardPage from "@/pages/DashboardPage";
@@ -39,7 +38,6 @@ function AuthenticatedRoutes() {
         <Route path="/shop" element={<ShopPage user={user} />} />
         <Route path="/profile" element={<ProfilePage user={user} />} />
         <Route path="/profile/:childId" element={<ProfilePage user={user} />} />
-        <Route path="/rewards" element={<RewardsPage user={user} />} />
         <Route path="/admin-settings" element={<AdminSettingsPage user={user} />} />
         <Route path="/avatar-items" element={<AvatarItemsPage user={user} />} />
         <Route path="/leaderboard" element={<LeaderboardPage user={user} />} />

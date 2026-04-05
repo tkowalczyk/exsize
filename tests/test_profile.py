@@ -137,15 +137,19 @@ def test_profile_includes_transactions_after_earning(client):
 def test_profile_includes_spent_and_penalty_transactions(client):
     parent_token, child_token, child_id = _setup_family_with_child(client)
 
+    # Seed avatars
+    from exsize.database import get_db
+    db = next(client.app.dependency_overrides[get_db]())
+    from exsize.app import _seed_avatar_items
+    _seed_avatar_items(db)
+
     # Earn some exbucks first
     _create_and_approve_task(client, parent_token, child_token, child_id, name="Earn task", exbucks=50)
 
-    # Purchase a reward (need admin to create one)
-    admin_token = _register_and_login(client, email="admin@example.com", role="admin")
-    reward = client.post("/api/rewards", json={
-        "name": "Sticker", "description": "Cool sticker", "price": 10,
-    }, headers={"Authorization": f"Bearer {admin_token}"}).json()
-    client.post(f"/api/rewards/{reward['id']}/purchase", headers={
+    # Spend via avatar purchase (cheapest non-free icon = 10 EB)
+    from exsize.models import AvatarItem
+    cheap_icon = db.query(AvatarItem).filter(AvatarItem.type == "icon", AvatarItem.price == 10).first()
+    client.post(f"/api/avatar/purchase/{cheap_icon.id}", headers={
         "Authorization": f"Bearer {child_token}",
     })
 

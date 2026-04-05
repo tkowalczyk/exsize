@@ -127,6 +127,8 @@ export interface TaskResponse {
   assigned_to: number;
   day_of_week: string | null;
   photo_url: string | null;
+  avatar_icon: string | null;
+  avatar_background: string | null;
 }
 
 export interface TaskCreateRequest {
@@ -235,72 +237,6 @@ export function assignPenalty(data: PenaltyRequest) {
   });
 }
 
-// --- Rewards ---
-
-export interface RewardResponse {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-}
-
-export interface RewardCreateRequest {
-  name: string;
-  description: string;
-  price: number;
-}
-
-export interface RewardUpdateRequest {
-  name?: string;
-  description?: string;
-  price?: number;
-}
-
-export interface PurchaseResponse {
-  id: number;
-  reward_name: string;
-  price: number;
-  created_at: string;
-}
-
-export function getRewards() {
-  return apiFetch<RewardResponse[]>("/api/rewards");
-}
-
-export function createReward(data: RewardCreateRequest) {
-  return apiFetch<RewardResponse>("/api/rewards", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-export function updateReward(rewardId: number, data: RewardUpdateRequest) {
-  return apiFetch<RewardResponse>(`/api/rewards/${rewardId}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
-
-export function deleteReward(rewardId: number) {
-  return apiFetch<void>(`/api/rewards/${rewardId}`, {
-    method: "DELETE",
-  });
-}
-
-export function purchaseReward(rewardId: number) {
-  return apiFetch<PurchaseResponse>(`/api/rewards/${rewardId}/purchase`, {
-    method: "POST",
-  });
-}
-
-export function getPurchases() {
-  return apiFetch<PurchaseResponse[]>("/api/rewards/purchases");
-}
-
-export function getChildPurchases(childId: number) {
-  return apiFetch<PurchaseResponse[]>(`/api/rewards/purchases/${childId}`);
-}
-
 // --- Gamification ---
 
 export interface GamificationProfileResponse {
@@ -328,6 +264,7 @@ export interface ProfileTransactionItem {
 
 export interface ProfileResponse {
   nickname: string | null;
+  nickname_changes: number;
   xp: number;
   level: number;
   level_name: string;

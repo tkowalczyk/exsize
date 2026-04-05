@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock } from "lucide-react";
+import Avatar from "@/components/Avatar";
 import {
   getTasks,
   createTask,
@@ -332,7 +333,9 @@ export default function TasksPage({ user }: TasksPageProps) {
           </form>
         ) : (
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center gap-3">
+              <Avatar icon={task.avatar_icon} background={task.avatar_background} size="sm" />
+              <div>
               <div className="flex items-center gap-2">
                 <span className="font-medium">{task.name}</span>
                 <StatusBadge status={task.status} />
@@ -350,6 +353,7 @@ export default function TasksPage({ user }: TasksPageProps) {
                   <a href={task.photo_url} target="_blank" rel="noopener noreferrer">{task.photo_url}</a>
                 </p>
               )}
+              </div>
             </div>
             <div className="flex gap-2">
               {user.role === "parent" && !["completed", "approved"].includes(task.status) && (

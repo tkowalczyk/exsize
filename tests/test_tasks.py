@@ -453,6 +453,42 @@ def test_full_task_lifecycle_accept_complete_approve(client):
     assert balance["balance"] == 5
 
 
+def test_task_list_includes_avatar_fields(client):
+    parent_token, child_token, child_id = _setup_family_with_child(client)
+
+    # Seed avatars so child gets defaults on join
+    from exsize.database import get_db
+    db = next(client.app.dependency_overrides[get_db]())
+    from exsize.app import _seed_avatar_items
+    _seed_avatar_items(db)
+
+    # Re-join to trigger avatar assignment (child already joined, so assign manually)
+    from exsize.models import AvatarItem, User, UserInventory
+    free_icon = db.query(AvatarItem).filter(AvatarItem.type == "icon", AvatarItem.price == 0, AvatarItem.is_default == True).first()
+    free_bg = db.query(AvatarItem).filter(AvatarItem.type == "background", AvatarItem.price == 0, AvatarItem.is_default == True).first()
+    child = db.query(User).filter(User.id == child_id).first()
+    if not db.query(UserInventory).filter(UserInventory.user_id == child_id).first():
+        db.add(UserInventory(user_id=child_id, avatar_item_id=free_icon.id))
+        db.add(UserInventory(user_id=child_id, avatar_item_id=free_bg.id))
+    child.equipped_icon_id = free_icon.id
+    child.equipped_background_id = free_bg.id
+    db.commit()
+
+    client.post("/api/tasks", json={
+        "name": "Do 10 pushups",
+        "description": "Complete 10 pushups",
+        "exbucks": 5,
+        "assigned_to": child_id,
+    }, headers={"Authorization": f"Bearer {parent_token}"})
+
+    response = client.get("/api/tasks", headers={"Authorization": f"Bearer {child_token}"})
+    assert response.status_code == 200
+    tasks = response.json()
+    assert len(tasks) == 1
+    assert tasks[0]["avatar_icon"] == "👤"
+    assert tasks[0]["avatar_background"] == "#F48FB1"
+
+
 def test_cannot_act_on_task_outside_family(client):
     # Family 1
     parent1_token, child1_token, child1_id = _setup_family_with_child(client)

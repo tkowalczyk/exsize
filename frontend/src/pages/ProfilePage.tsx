@@ -43,42 +43,72 @@ export default function ProfilePage({ user }: ProfilePageProps) {
 
   const isOwnProfile = user.role === "child" && childIdNum == null;
 
-  return <ProfileView profile={profile} avatarIcon={avatarData?.icon?.value} avatarBackground={avatarData?.background?.value} canEdit={isOwnProfile} />;
+  return <ProfileView profile={profile} avatarIcon={avatarData?.icon?.value} avatarBackground={avatarData?.background?.value} canEdit={isOwnProfile} nicknameChanges={profile.nickname_changes} />;
 }
 
-function NicknameForm({ currentNickname }: { currentNickname: string | null }) {
+function NicknameForm({ currentNickname, nicknameChanges }: { currentNickname: string | null; nicknameChanges: number }) {
   const [nickname, setNicknameValue] = useState(currentNickname ?? "");
+  const [showConfirm, setShowConfirm] = useState(false);
   const queryClient = useQueryClient();
+  const willCost = nicknameChanges > 0;
 
   const mutation = useMutation({
     mutationFn: (nick: string) => setNickname(nick),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["exbucks-balance"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      setShowConfirm(false);
     },
   });
 
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nickname.trim()) return;
+    if (willCost) {
+      setShowConfirm(true);
+    } else {
+      mutation.mutate(nickname.trim());
+    }
+  }
+
   return (
-    <form
-      className="flex items-end gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (nickname.trim()) mutation.mutate(nickname.trim());
-      }}
-    >
-      <div className="flex-1">
-        <Label htmlFor="nickname">Nickname</Label>
-        <Input
-          id="nickname"
-          value={nickname}
-          onChange={(e) => setNicknameValue(e.target.value)}
-        />
-      </div>
-      <Button type="submit">Save Nickname</Button>
-    </form>
+    <div className="space-y-2">
+      <form className="flex items-end gap-2" onSubmit={handleSubmit}>
+        <div className="flex-1">
+          <Label htmlFor="nickname">Nickname</Label>
+          <Input
+            id="nickname"
+            value={nickname}
+            onChange={(e) => setNicknameValue(e.target.value)}
+          />
+        </div>
+        <Button type="submit">Save Nickname</Button>
+      </form>
+      {willCost && !showConfirm && (
+        <p className="text-xs text-muted-foreground">Changing nickname costs 50 ExBucks.</p>
+      )}
+      {showConfirm && (
+        <div className="rounded border border-yellow-300 bg-yellow-50 p-3 dark:border-yellow-600 dark:bg-yellow-950">
+          <p className="text-sm font-medium">Are you sure? This will cost 50 ExBucks.</p>
+          <div className="mt-2 flex gap-2">
+            <Button size="sm" onClick={() => mutation.mutate(nickname.trim())}>
+              Confirm
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowConfirm(false)}>
+              Cancel
+            </Button>
+          </div>
+          {mutation.isError && (
+            <p className="mt-2 text-xs text-red-600">{(mutation.error as Error).message}</p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
-function ProfileView({ profile, avatarIcon, avatarBackground, canEdit }: { profile: ProfileResponse; avatarIcon?: string | null; avatarBackground?: string | null; canEdit: boolean }) {
+function ProfileView({ profile, avatarIcon, avatarBackground, canEdit, nicknameChanges }: { profile: ProfileResponse; avatarIcon?: string | null; avatarBackground?: string | null; canEdit: boolean; nicknameChanges: number }) {
   return (
     <div className="space-y-6">
       <Card>
@@ -123,7 +153,7 @@ function ProfileView({ profile, avatarIcon, avatarBackground, canEdit }: { profi
             <CardTitle>Nickname</CardTitle>
           </CardHeader>
           <CardContent>
-            <NicknameForm currentNickname={profile.nickname} />
+            <NicknameForm currentNickname={profile.nickname} nicknameChanges={nicknameChanges} />
           </CardContent>
         </Card>
       )}
@@ -157,38 +187,6 @@ function ProfileView({ profile, avatarIcon, avatarBackground, canEdit }: { profi
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {profile.transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No transactions yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {profile.transactions.map((txn) => (
-                <div
-                  key={txn.id}
-                  className="flex items-center justify-between border-b pb-2 last:border-0"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{txn.description}</p>
-                    <p className="text-xs text-muted-foreground">{txn.type}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-bold ${txn.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {txn.amount >= 0 ? `+${txn.amount}` : `${txn.amount}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(txn.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

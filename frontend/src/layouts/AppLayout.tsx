@@ -62,7 +62,6 @@ const NAV_ITEMS: Record<string, { label: string; to: string }[]> = {
     { label: "Tasks", to: "/tasks" },
     { label: "Family", to: "/family" },
     { label: "ExBucks", to: "/exbucks" },
-    { label: "Rewards", to: "/rewards" },
     { label: "Avatar Items", to: "/avatar-items" },
     { label: "App Settings", to: "/admin-settings" },
     { label: "Settings", to: "/settings" },

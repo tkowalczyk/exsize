@@ -91,7 +91,6 @@ describe("AppLayout", () => {
     expect(screen.getByText(/tasks/i)).toBeInTheDocument();
     expect(screen.getByText(/family/i)).toBeInTheDocument();
     expect(screen.getByText(/settings/i)).toBeInTheDocument();
-    expect(screen.queryByText(/rewards/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/shop/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/profile/i)).not.toBeInTheDocument();
   });
@@ -112,7 +111,7 @@ describe("AppLayout", () => {
     expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
   });
 
-  it("shows admin nav items (parent nav + Rewards + App Settings)", () => {
+  it("shows admin nav items (parent nav + Avatar Items + App Settings)", () => {
     renderLayoutWithUser({
       id: 3,
       email: "admin@test.com",
@@ -122,7 +121,7 @@ describe("AppLayout", () => {
     expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
     expect(screen.getByText(/tasks/i)).toBeInTheDocument();
     expect(screen.getByText(/family/i)).toBeInTheDocument();
-    expect(screen.getByText(/rewards/i)).toBeInTheDocument();
+    expect(screen.getByText("Avatar Items")).toBeInTheDocument();
     expect(screen.getByText("App Settings")).toBeInTheDocument();
     expect(screen.getByText("Settings")).toBeInTheDocument();
   });

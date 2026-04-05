@@ -60,23 +60,6 @@ class Transaction(Base):
     created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
 
-class Reward(Base):
-    __tablename__ = "rewards"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=False)
-    price: Mapped[int] = mapped_column(Integer, nullable=False)
-
-
-class Purchase(Base):
-    __tablename__ = "purchases"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    reward_id: Mapped[int] = mapped_column(Integer, ForeignKey("rewards.id"), nullable=False)
-    created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=func.now())
-
 
 class DeletionRequest(Base):
     __tablename__ = "deletion_requests"

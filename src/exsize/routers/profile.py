@@ -38,6 +38,7 @@ class TransactionItem(BaseModel):
 
 class ProfileResponse(BaseModel):
     nickname: str | None = None
+    nickname_changes: int = 0
     xp: int
     level: int
     level_name: str
@@ -74,6 +75,7 @@ def _build_profile(child: User, db: Session) -> ProfileResponse:
 
     return ProfileResponse(
         nickname=child.nickname,
+        nickname_changes=child.nickname_changes,
         xp=child.xp,
         level=child.level,
         level_name=LEVEL_NAMES[child.level - 1],
