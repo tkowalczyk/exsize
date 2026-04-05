@@ -65,8 +65,8 @@ describe("TasksPage", () => {
 
   it("shows task list with status indicators for parent", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null },
-      { id: 2, name: "Do homework", description: "Math", exbucks: 20, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Do homework", description: "Math", exbucks: 20, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",
@@ -115,7 +115,7 @@ describe("TasksPage", () => {
     });
     vi.mocked(createTaskMock).mockResolvedValue({
       id: 1, name: "Clean room", description: "Tidy up", exbucks: 10,
-      status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null,
+      status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("parent");
@@ -136,9 +136,9 @@ describe("TasksPage", () => {
 
   it("shows approve/reject buttons only on completed tasks for parent", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Assigned task", description: "", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null },
-      { id: 2, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null },
-      { id: 3, name: "Approved task", description: "", exbucks: 15, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "Assigned task", description: "", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 3, name: "Approved task", description: "", exbucks: 15, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",
@@ -161,7 +161,7 @@ describe("TasksPage", () => {
   it("calls approveTask when parent clicks approve", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 2, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 2, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",
@@ -171,7 +171,7 @@ describe("TasksPage", () => {
       ],
     });
     vi.mocked(approveTaskMock).mockResolvedValue({
-      id: 2, name: "Completed task", description: "", exbucks: 10, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null,
+      id: 2, name: "Completed task", description: "", exbucks: 10, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("parent");
@@ -186,7 +186,7 @@ describe("TasksPage", () => {
   it("calls rejectTask when parent clicks reject on completed task", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 2, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 2, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",
@@ -196,7 +196,7 @@ describe("TasksPage", () => {
       ],
     });
     vi.mocked(rejectTaskMock).mockResolvedValue({
-      id: 2, name: "Completed task", description: "", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null,
+      id: 2, name: "Completed task", description: "", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("parent");
@@ -210,8 +210,8 @@ describe("TasksPage", () => {
 
   it("shows assigned tasks for child with status indicators", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
-      { id: 2, name: "Do homework", description: "Math", exbucks: 20, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Do homework", description: "Math", exbucks: 20, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
 
     renderTasksPage("child");
@@ -234,9 +234,9 @@ describe("TasksPage", () => {
 
   it("shows complete button only on accepted tasks for child", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
-      { id: 2, name: "Assigned task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null },
-      { id: 3, name: "Approved task", description: "", exbucks: 15, status: "approved", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Assigned task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 3, name: "Approved task", description: "", exbucks: 15, status: "approved", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
 
     renderTasksPage("child");
@@ -250,10 +250,10 @@ describe("TasksPage", () => {
   it("calls completeTask when child clicks complete", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(completeTaskMock).mockResolvedValue({
-      id: 1, name: "Accepted task", description: "", exbucks: 10, status: "completed", assigned_to: 1, day_of_week: null, photo_url: null,
+      id: 1, name: "Accepted task", description: "", exbucks: 10, status: "completed", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("child");
@@ -267,11 +267,11 @@ describe("TasksPage", () => {
 
   it("renders visually distinct status badges for each status", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "T1", description: "", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null },
-      { id: 2, name: "T2", description: "", exbucks: 5, status: "accepted", assigned_to: 2, day_of_week: null, photo_url: null },
-      { id: 3, name: "T3", description: "", exbucks: 5, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null },
-      { id: 4, name: "T4", description: "", exbucks: 5, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null },
-      { id: 5, name: "T5", description: "", exbucks: 5, status: "rejected", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "T1", description: "", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "T2", description: "", exbucks: 5, status: "accepted", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 3, name: "T3", description: "", exbucks: 5, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 4, name: "T4", description: "", exbucks: 5, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 5, name: "T5", description: "", exbucks: 5, status: "rejected", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",
@@ -307,7 +307,7 @@ describe("TasksPage", () => {
     });
     vi.mocked(createTaskMock).mockResolvedValue({
       id: 1, name: "Clean room", description: "Tidy up", exbucks: 10,
-      status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null,
+      status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     const { unmount: unmountParent1 } = renderTasksPage("parent");
@@ -325,11 +325,11 @@ describe("TasksPage", () => {
 
     // Step 2: Child sees the task (accepted state — after accepting)
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "accepted", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "accepted", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(completeTaskMock).mockResolvedValue({
       id: 1, name: "Clean room", description: "Tidy up", exbucks: 10,
-      status: "completed", assigned_to: 2, day_of_week: null, photo_url: null,
+      status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     const { unmount: unmountChild } = renderTasksPage("child");
@@ -344,11 +344,11 @@ describe("TasksPage", () => {
 
     // Step 3: Parent approves the completed task
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(approveTaskMock).mockResolvedValue({
       id: 1, name: "Clean room", description: "Tidy up", exbucks: 10,
-      status: "approved", assigned_to: 2, day_of_week: null, photo_url: null,
+      status: "approved", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     // After approve, tasks refetch showing approved
@@ -365,7 +365,7 @@ describe("TasksPage", () => {
 
     // Step 4: Verify task shows as done
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "approved", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
 
     renderTasksPage("parent");
@@ -378,8 +378,8 @@ describe("TasksPage", () => {
 
   it("shows accept button on assigned tasks for child", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "New task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null },
-      { id: 2, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "New task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
 
     renderTasksPage("child");
@@ -393,10 +393,10 @@ describe("TasksPage", () => {
   it("calls acceptTask when child clicks accept", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "New task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "New task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(acceptTaskMock).mockResolvedValue({
-      id: 1, name: "New task", description: "", exbucks: 5, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null,
+      id: 1, name: "New task", description: "", exbucks: 5, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("child");
@@ -420,7 +420,7 @@ describe("TasksPage", () => {
     });
     vi.mocked(createTaskMock).mockResolvedValue({
       id: 1, name: "Monday chore", description: "Do it", exbucks: 5,
-      status: "assigned", assigned_to: 2, day_of_week: "Monday", photo_url: null,
+      status: "assigned", assigned_to: 2, day_of_week: "Monday", photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("parent");
@@ -446,7 +446,7 @@ describe("TasksPage", () => {
   it("parent can edit a task via edit form", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Old name", description: "Old desc", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "Old name", description: "Old desc", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",
@@ -456,7 +456,7 @@ describe("TasksPage", () => {
       ],
     });
     vi.mocked(editTaskMock).mockResolvedValue({
-      id: 1, name: "New name", description: "New desc", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: "Tuesday", photo_url: null,
+      id: 1, name: "New name", description: "New desc", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: "Tuesday", photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("parent");
@@ -488,7 +488,7 @@ describe("TasksPage", () => {
   it("parent can delete a task with confirmation", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Task to delete", description: "", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null },
+      { id: 1, name: "Task to delete", description: "", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",
@@ -515,9 +515,9 @@ describe("TasksPage", () => {
 
   it("child sees tasks organized by day in a weekly view", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Monday task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: "Monday", photo_url: null },
-      { id: 2, name: "Wednesday task", description: "", exbucks: 10, status: "assigned", assigned_to: 1, day_of_week: "Wednesday", photo_url: null },
-      { id: 3, name: "Anytime task", description: "", exbucks: 3, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "Monday task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: "Monday", photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Wednesday task", description: "", exbucks: 10, status: "assigned", assigned_to: 1, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 3, name: "Anytime task", description: "", exbucks: 3, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
 
     renderTasksPage("child");
@@ -536,10 +536,10 @@ describe("TasksPage", () => {
   it("child can reject an assigned task", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Unwanted task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "Unwanted task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(rejectTaskMock).mockResolvedValue({
-      id: 1, name: "Unwanted task", description: "", exbucks: 5, status: "rejected", assigned_to: 1, day_of_week: null, photo_url: null,
+      id: 1, name: "Unwanted task", description: "", exbucks: 5, status: "rejected", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("child");
@@ -556,7 +556,7 @@ describe("TasksPage", () => {
 
   it("free child sees lock icon instead of photo URL input", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Photo task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "Photo task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getSubscriptionMock).mockResolvedValue({
       plan: "free",
@@ -575,14 +575,14 @@ describe("TasksPage", () => {
   it("child on SizePass can provide photo URL when completing a task", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Photo task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null },
+      { id: 1, name: "Photo task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getSubscriptionMock).mockResolvedValue({
       plan: "sizepass",
       status: "active",
     });
     vi.mocked(completeTaskMock).mockResolvedValue({
-      id: 1, name: "Photo task", description: "", exbucks: 10, status: "completed", assigned_to: 1, day_of_week: null, photo_url: "https://example.com/photo.jpg",
+      id: 1, name: "Photo task", description: "", exbucks: 10, status: "completed", assigned_to: 1, day_of_week: null, photo_url: "https://example.com/photo.jpg", avatar_icon: null, avatar_background: null,
     });
 
     renderTasksPage("child");
@@ -613,7 +613,7 @@ describe("TasksPage", () => {
     });
     vi.mocked(createTaskMock).mockResolvedValue({
       id: 1, name: "Wed chore", description: "Clean up", exbucks: 15,
-      status: "assigned", assigned_to: 2, day_of_week: "Wednesday", photo_url: null,
+      status: "assigned", assigned_to: 2, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     const { unmount: u1 } = renderTasksPage("parent");
@@ -635,10 +635,10 @@ describe("TasksPage", () => {
 
     // Step 2: Child sees task on Wednesday in weekly view, accepts it
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "assigned", assigned_to: 2, day_of_week: "Wednesday", photo_url: null },
+      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "assigned", assigned_to: 2, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(acceptTaskMock).mockResolvedValue({
-      id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "accepted", assigned_to: 2, day_of_week: "Wednesday", photo_url: null,
+      id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "accepted", assigned_to: 2, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     const { unmount: u2 } = renderTasksPage("child");
@@ -651,10 +651,10 @@ describe("TasksPage", () => {
 
     // Step 3: Child completes the task
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "accepted", assigned_to: 2, day_of_week: "Wednesday", photo_url: null },
+      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "accepted", assigned_to: 2, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(completeTaskMock).mockResolvedValue({
-      id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "completed", assigned_to: 2, day_of_week: "Wednesday", photo_url: null,
+      id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "completed", assigned_to: 2, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     const { unmount: u3 } = renderTasksPage("child");
@@ -665,11 +665,11 @@ describe("TasksPage", () => {
 
     // Step 4: Parent edits another task → child sees update
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "completed", assigned_to: 2, day_of_week: "Wednesday", photo_url: null },
-      { id: 2, name: "Old task", description: "Old desc", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: "Monday", photo_url: null },
+      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "completed", assigned_to: 2, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Old task", description: "Old desc", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: "Monday", photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(editTaskMock).mockResolvedValue({
-      id: 2, name: "Updated task", description: "New desc", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: "Friday", photo_url: null,
+      id: 2, name: "Updated task", description: "New desc", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: "Friday", photo_url: null, avatar_icon: null, avatar_background: null,
     });
 
     const { unmount: u4 } = renderTasksPage("parent");
@@ -685,8 +685,8 @@ describe("TasksPage", () => {
 
     // Step 5: Child sees the updated task
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "completed", assigned_to: 2, day_of_week: "Wednesday", photo_url: null },
-      { id: 2, name: "Updated task", description: "New desc", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: "Friday", photo_url: null },
+      { id: 1, name: "Wed chore", description: "Clean up", exbucks: 15, status: "completed", assigned_to: 2, day_of_week: "Wednesday", photo_url: null, avatar_icon: null, avatar_background: null },
+      { id: 2, name: "Updated task", description: "New desc", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: "Friday", photo_url: null, avatar_icon: null, avatar_background: null },
     ]);
 
     renderTasksPage("child");
@@ -696,7 +696,7 @@ describe("TasksPage", () => {
 
   it("displays photo URL on completed tasks when present", async () => {
     vi.mocked(getTasksMock).mockResolvedValue([
-      { id: 1, name: "Done task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: "https://example.com/proof.jpg" },
+      { id: 1, name: "Done task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: "https://example.com/proof.jpg", avatar_icon: null, avatar_background: null },
     ]);
     vi.mocked(getFamilyMock).mockResolvedValue({
       id: 1, pin: "ABC123",

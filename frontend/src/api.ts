@@ -19,7 +19,8 @@ export async function apiFetch<T>(
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  const res = await fetch(path, { ...options, headers });
+  const base = import.meta.env.VITE_API_URL ?? "";
+  const res = await fetch(`${base}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new ApiError(res.status, body.detail ?? "Request failed");
