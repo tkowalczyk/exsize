@@ -1,19 +1,57 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route, useLocation } from "react-router-dom";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import ChildBottomTabBar from "@/components/ChildBottomTabBar";
 
 function LocationDisplay() {
   return <div data-testid="location">{useLocation().pathname}</div>;
 }
 
-function renderBottomBar(initialPath = "/tasks") {
-  return render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <ChildBottomTabBar />
-    </MemoryRouter>,
-  );
+function renderBottomBar(initialPath = "/tasks", overrides: { dark?: boolean; toggleDark?: () => void; logout?: () => void } = {}) {
+  const toggleDark = overrides.toggleDark ?? vi.fn();
+  const logout = overrides.logout ?? vi.fn();
+  return {
+    toggleDark,
+    logout,
+    ...render(
+      <MemoryRouter initialEntries={[initialPath]}>
+        <ChildBottomTabBar dark={overrides.dark ?? false} toggleDark={toggleDark} logout={logout} />
+      </MemoryRouter>,
+    ),
+  };
+}
+
+function renderWithRoutes(initialPath = "/tasks", overrides: { dark?: boolean; toggleDark?: () => void; logout?: () => void } = {}) {
+  const toggleDark = overrides.toggleDark ?? vi.fn();
+  const logout = overrides.logout ?? vi.fn();
+  return {
+    toggleDark,
+    logout,
+    ...render(
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route path="*" element={<ChildBottomTabBar dark={overrides.dark ?? false} toggleDark={toggleDark} logout={logout} />} />
+        </Routes>
+      </MemoryRouter>,
+    ),
+  };
+}
+
+function renderWithRoutesAndLocation(initialPath = "/tasks", overrides: { dark?: boolean; toggleDark?: () => void; logout?: () => void } = {}) {
+  const toggleDark = overrides.toggleDark ?? vi.fn();
+  const logout = overrides.logout ?? vi.fn();
+  return {
+    toggleDark,
+    logout,
+    ...render(
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route path="*" element={<><ChildBottomTabBar dark={overrides.dark ?? false} toggleDark={toggleDark} logout={logout} /><LocationDisplay /></>} />
+        </Routes>
+      </MemoryRouter>,
+    ),
+  };
 }
 
 describe("ChildBottomTabBar", () => {
@@ -27,13 +65,7 @@ describe("ChildBottomTabBar", () => {
   });
 
   it("highlights the active tab based on current route", () => {
-    render(
-      <MemoryRouter initialEntries={["/shop"]}>
-        <Routes>
-          <Route path="*" element={<ChildBottomTabBar />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderWithRoutes("/shop");
 
     const shopTab = screen.getByLabelText("Shop");
     const tasksTab = screen.getByLabelText("Tasks");
@@ -42,15 +74,16 @@ describe("ChildBottomTabBar", () => {
     expect(tasksTab.getAttribute("aria-current")).toBeNull();
   });
 
+  it("active tab has green hover highlight", () => {
+    renderWithRoutes("/shop");
+
+    const shopTab = screen.getByLabelText("Shop");
+    expect(shopTab.className).toContain("hover:bg-[#6bcb77]/10");
+  });
+
   it("navigates to correct page when tab is clicked", async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={["/tasks"]}>
-        <Routes>
-          <Route path="*" element={<><ChildBottomTabBar /><LocationDisplay /></>} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderWithRoutesAndLocation("/tasks");
 
     await user.click(screen.getByLabelText("Shop"));
     expect(screen.getByTestId("location")).toHaveTextContent("/shop");
@@ -65,7 +98,7 @@ describe("ChildBottomTabBar", () => {
   it("has fixed positioning at bottom of viewport", () => {
     renderBottomBar();
 
-    const nav = screen.getByRole("navigation");
+    const nav = screen.getByLabelText("Tasks").closest("nav")!;
     expect(nav.className).toContain("fixed");
     expect(nav.className).toContain("bottom-0");
   });
@@ -73,7 +106,7 @@ describe("ChildBottomTabBar", () => {
   it("is hidden on desktop via md:hidden", () => {
     renderBottomBar();
 
-    const nav = screen.getByRole("navigation");
+    const nav = screen.getByLabelText("Tasks").closest("nav")!;
     expect(nav.className).toContain("md:hidden");
   });
 
@@ -94,20 +127,24 @@ describe("ChildBottomTabBar", () => {
     expect(menuBtn).toBeInTheDocument();
   });
 
-  it("opens drawer when hamburger is clicked", async () => {
-    const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={["/tasks"]}>
-        <Routes>
-          <Route path="*" element={<ChildBottomTabBar />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+  it("drawer is always in DOM, hidden off-screen when closed", () => {
+    renderWithRoutes();
 
-    expect(screen.queryByLabelText("Profile")).not.toBeInTheDocument();
+    const drawer = screen.getByRole("dialog");
+    expect(drawer).toBeInTheDocument();
+    expect(drawer.className).toContain("translate-x-full");
+  });
+
+  it("drawer slides in when hamburger is clicked", async () => {
+    const user = userEvent.setup();
+    renderWithRoutes();
+
+    const drawer = screen.getByRole("dialog");
+    expect(drawer.className).toContain("translate-x-full");
 
     await user.click(screen.getByLabelText("Menu"));
 
+    expect(drawer.className).toContain("translate-x-0");
     expect(screen.getByLabelText("Profile")).toBeInTheDocument();
     expect(screen.getByText("Settings")).toBeInTheDocument();
     expect(screen.getByText("Family")).toBeInTheDocument();
@@ -115,55 +152,97 @@ describe("ChildBottomTabBar", () => {
     expect(screen.getByText("SizePass")).toBeInTheDocument();
   });
 
+  it("drawer and backdrop have transition classes for smooth animation", () => {
+    renderWithRoutes();
+
+    const drawer = screen.getByRole("dialog");
+    const backdrop = screen.getByTestId("drawer-backdrop");
+
+    expect(drawer.className).toContain("transition-transform");
+    expect(backdrop.className).toContain("transition-opacity");
+  });
+
   it("closes drawer on backdrop click", async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={["/tasks"]}>
-        <Routes>
-          <Route path="*" element={<ChildBottomTabBar />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderWithRoutes();
 
     await user.click(screen.getByLabelText("Menu"));
-    expect(screen.getByText("Settings")).toBeInTheDocument();
+    const drawer = screen.getByRole("dialog");
+    expect(drawer.className).toContain("translate-x-0");
 
     await user.click(screen.getByTestId("drawer-backdrop"));
-    expect(screen.queryByText("Settings")).not.toBeInTheDocument();
+    expect(drawer.className).toContain("translate-x-full");
   });
 
   it("closes drawer on Escape key", async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={["/tasks"]}>
-        <Routes>
-          <Route path="*" element={<ChildBottomTabBar />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderWithRoutes();
 
     await user.click(screen.getByLabelText("Menu"));
-    expect(screen.getByText("Settings")).toBeInTheDocument();
+    const drawer = screen.getByRole("dialog");
+    expect(drawer.className).toContain("translate-x-0");
 
     await user.keyboard("{Escape}");
-    expect(screen.queryByText("Settings")).not.toBeInTheDocument();
+    expect(drawer.className).toContain("translate-x-full");
   });
 
   it("closes drawer when a drawer item is clicked", async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={["/tasks"]}>
-        <Routes>
-          <Route path="*" element={<><ChildBottomTabBar /><LocationDisplay /></>} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderWithRoutesAndLocation();
 
     await user.click(screen.getByLabelText("Menu"));
-    expect(screen.getByText("Settings")).toBeInTheDocument();
 
     await user.click(screen.getByLabelText("Profile"));
-    expect(screen.queryByText("Settings")).not.toBeInTheDocument();
+    const drawer = screen.getByRole("dialog");
+    expect(drawer.className).toContain("translate-x-full");
     expect(screen.getByTestId("location")).toHaveTextContent("/profile");
+  });
+
+  it("menu icon transitions to close icon when drawer opens", async () => {
+    const user = userEvent.setup();
+    renderWithRoutes();
+
+    const menuBtn = screen.getByLabelText("Menu");
+    expect(menuBtn).toHaveAttribute("data-state", "closed");
+
+    await user.click(menuBtn);
+    expect(menuBtn).toHaveAttribute("data-state", "open");
+
+    await user.keyboard("{Escape}");
+    expect(menuBtn).toHaveAttribute("data-state", "closed");
+  });
+
+  it("drawer has dark mode toggle", async () => {
+    const user = userEvent.setup();
+    renderWithRoutes();
+
+    await user.click(screen.getByLabelText("Menu"));
+    expect(screen.getByLabelText("Toggle dark mode")).toBeInTheDocument();
+  });
+
+  it("drawer dark mode toggle calls toggleDark", async () => {
+    const user = userEvent.setup();
+    const { toggleDark } = renderWithRoutes();
+
+    await user.click(screen.getByLabelText("Menu"));
+    await user.click(screen.getByLabelText("Toggle dark mode"));
+    expect(toggleDark).toHaveBeenCalledTimes(1);
+  });
+
+  it("drawer has logout button", async () => {
+    const user = userEvent.setup();
+    renderWithRoutes();
+
+    await user.click(screen.getByLabelText("Menu"));
+    expect(screen.getByLabelText("Logout")).toBeInTheDocument();
+  });
+
+  it("drawer logout button calls logout", async () => {
+    const user = userEvent.setup();
+    const { logout } = renderWithRoutes();
+
+    await user.click(screen.getByLabelText("Menu"));
+    await user.click(screen.getByLabelText("Logout"));
+    expect(logout).toHaveBeenCalledTimes(1);
   });
 });

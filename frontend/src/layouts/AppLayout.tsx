@@ -1,10 +1,11 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getBalance, getGamificationProfile, type UserResponse } from "@/api";
 import { useAuth } from "@/auth";
+import { useDarkMode } from "@/hooks/useDarkMode";
 import ParentBottomTabBar from "@/components/ParentBottomTabBar";
 import ParentTopBar from "@/components/ParentTopBar";
 import ChildBottomTabBar from "@/components/ChildBottomTabBar";
@@ -76,29 +77,6 @@ interface AppLayoutProps {
   children: ReactNode;
 }
 
-function useDarkMode() {
-  const [dark, setDark] = useState(() => {
-    try {
-      const stored = localStorage.getItem("theme");
-      if (stored) return stored === "dark";
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    try {
-      localStorage.setItem("theme", dark ? "dark" : "light");
-    } catch {
-      // localStorage unavailable in test env
-    }
-  }, [dark]);
-
-  return [dark, () => setDark((d) => !d)] as const;
-}
-
 export default function AppLayout({ user, children }: AppLayoutProps) {
   const { logout } = useAuth();
   const [dark, toggleDark] = useDarkMode();
@@ -120,7 +98,7 @@ export default function AppLayout({ user, children }: AppLayoutProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {user.role === "parent" && <ParentTopBar />}
+      {user.role === "parent" && <ParentTopBar dark={dark} toggleDark={toggleDark} logout={logout} />}
       <header className="border-b bg-background md:block hidden">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <nav className="flex gap-4">
@@ -184,7 +162,7 @@ export default function AppLayout({ user, children }: AppLayoutProps) {
         {children}
       </main>
       {user.role === "parent" && <ParentBottomTabBar />}
-      {user.role === "child" && <ChildBottomTabBar />}
+      {user.role === "child" && <ChildBottomTabBar dark={dark} toggleDark={toggleDark} logout={logout} />}
     </div>
   );
 }

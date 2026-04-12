@@ -146,9 +146,8 @@ describe("AppLayout", () => {
       role: "parent",
       language: "en",
     });
-    expect(
-      screen.getByRole("button", { name: /logout/i }),
-    ).toBeInTheDocument();
+    const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
+    expect(logoutButtons.length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows gamification summary in header for child", async () => {
@@ -194,7 +193,8 @@ describe("AppLayout", () => {
       role: "parent",
       language: "en",
     });
-    await user.click(screen.getByRole("button", { name: /logout/i }));
+    const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
+    await user.click(logoutButtons[0]);
     expect(setTokenMock).toHaveBeenCalledWith(null);
   });
 
