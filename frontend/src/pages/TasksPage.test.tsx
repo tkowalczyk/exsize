@@ -728,6 +728,72 @@ describe("TasksPage", () => {
     expect(await screen.findByText(/max: 50/i)).toBeInTheDocument();
   });
 
+  it("shows spinner and disables Create Task button while task is being created", async () => {
+    const user = userEvent.setup();
+    let resolveCreate!: () => void;
+    vi.mocked(getTasksMock).mockResolvedValue([]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(createTaskMock).mockImplementation(() => new Promise<void>((resolve) => { resolveCreate = resolve; }));
+
+    renderTasksPage("parent");
+
+    await user.type(await screen.findByLabelText(/name/i), "Clean room");
+    await user.type(screen.getByLabelText(/description/i), "Tidy up");
+    await user.type(screen.getByLabelText(/exbucks/i), "10");
+    await user.selectOptions(screen.getByLabelText(/assign to/i), "2");
+    await user.click(screen.getByRole("button", { name: /create task/i }));
+
+    // Button should show spinner text and be disabled
+    expect(screen.getByText(/creating/i)).toBeInTheDocument();
+    const btn = screen.getByRole("button", { name: /creating/i });
+    expect(btn).toBeDisabled();
+
+    // Resolve the API call
+    resolveCreate();
+
+    // Loading should clear
+    await waitFor(() => {
+      expect(screen.queryByText(/creating/i)).not.toBeInTheDocument();
+    });
+    // Form should be reset
+    expect(screen.getByLabelText(/name/i)).toHaveValue("");
+  });
+
+  it("clears loading and shows error when Create Task fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getTasksMock).mockResolvedValue([]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(createTaskMock).mockRejectedValue(new Error("Server error"));
+
+    renderTasksPage("parent");
+
+    await user.type(await screen.findByLabelText(/name/i), "Clean room");
+    await user.type(screen.getByLabelText(/description/i), "Tidy up");
+    await user.type(screen.getByLabelText(/exbucks/i), "10");
+    await user.selectOptions(screen.getByLabelText(/assign to/i), "2");
+    await user.click(screen.getByRole("button", { name: /create task/i }));
+
+    // Error should be visible and loading cleared
+    expect(await screen.findByText(/server error/i)).toBeInTheDocument();
+    expect(screen.queryByText(/creating/i)).not.toBeInTheDocument();
+    // Button should be clickable again
+    expect(screen.getByRole("button", { name: /create task/i })).not.toBeDisabled();
+    // Form should NOT be reset on error
+    expect(screen.getByLabelText(/name/i)).toHaveValue("Clean room");
+  });
+
   it("shows inline error when ExBucks exceeds limit and blocks submit", async () => {
     const user = userEvent.setup();
     vi.mocked(getTasksMock).mockResolvedValue([]);

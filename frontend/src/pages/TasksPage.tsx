@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock } from "lucide-react";
 import Avatar from "@/components/Avatar";
+import { useLoading } from "@/hooks/useLoading";
 import {
   getTasks,
   createTask,
@@ -65,6 +66,9 @@ export default function TasksPage({ user }: TasksPageProps) {
 
   // Delete confirmation state
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // Create task loading state
+  const { isLoading: isCreating, error: createError, execute: executeCreate } = useLoading();
 
 
   // Photo URL state (per-task, keyed by task id)
@@ -193,13 +197,15 @@ export default function TasksPage({ user }: TasksPageProps) {
                 if (maxExbucks != null && Number(exbucks) > maxExbucks) {
                   return;
                 }
-                createMutation.mutate({
-                  name,
-                  description,
-                  exbucks: Number(exbucks),
-                  assigned_to: Number(assignedTo),
-                  day_of_week: dayOfWeek || null,
-                });
+                executeCreate(async () => {
+                  await createMutation.mutateAsync({
+                    name,
+                    description,
+                    exbucks: Number(exbucks),
+                    assigned_to: Number(assignedTo),
+                    day_of_week: dayOfWeek || null,
+                  });
+                }).catch(() => {});
               }}
             >
               <div>
@@ -262,7 +268,17 @@ export default function TasksPage({ user }: TasksPageProps) {
                   ))}
                 </select>
               </div>
-              <Button type="submit">Create Task</Button>
+              {createError && <p className="text-sm text-destructive">{createError}</p>}
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Creating...
+                  </span>
+                ) : (
+                  "Create Task"
+                )}
+              </Button>
             </form>
           </CardContent>
         </Card>

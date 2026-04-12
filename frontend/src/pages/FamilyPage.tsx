@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLoading } from "@/hooks/useLoading";
 import {
   getFamily,
   createFamily,
@@ -30,6 +31,8 @@ export default function FamilyPage({ user }: FamilyPageProps) {
   const [joinError, setJoinError] = useState("");
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const { isLoading: isJoining, error: joinLoadingError, execute: executeJoin } = useLoading();
 
   const [deletingChildId, setDeletingChildId] = useState<number | null>(null);
   const [approvingRequestId, setApprovingRequestId] = useState<number | null>(null);
@@ -141,7 +144,17 @@ export default function FamilyPage({ user }: FamilyPageProps) {
               onSubmit={(e) => {
                 e.preventDefault();
                 setJoinError("");
-                joinMutation.mutate(pin);
+                executeJoin(async () => {
+                  try {
+                    await joinMutation.mutateAsync(pin);
+                  } catch (err) {
+                    if (err instanceof ApiError && err.status === 403) {
+                      setShowUpgrade(true);
+                      return;
+                    }
+                    throw err;
+                  }
+                }).catch(() => {});
               }}
             >
               <div>
@@ -153,10 +166,19 @@ export default function FamilyPage({ user }: FamilyPageProps) {
                   onChange={(e) => setPin(e.target.value)}
                 />
               </div>
-              {joinError && (
-                <p className="text-sm text-destructive">{joinError}</p>
+              {(joinError || joinLoadingError) && (
+                <p className="text-sm text-destructive">{joinError || joinLoadingError}</p>
               )}
-              <Button type="submit">Join Family</Button>
+              <Button type="submit" disabled={isJoining}>
+                {isJoining ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Joining...
+                  </span>
+                ) : (
+                  "Join Family"
+                )}
+              </Button>
             </form>
           </CardContent>
         </Card>

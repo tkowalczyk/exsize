@@ -389,6 +389,50 @@ describe("FamilyPage", () => {
     expect(screen.queryByText(/deletion requests/i)).not.toBeInTheDocument();
   });
 
+  it("shows spinner and disables Join Family button while processing", async () => {
+    const user = userEvent.setup();
+    let resolveJoin!: () => void;
+    vi.mocked(getFamilyMock).mockRejectedValue(new ApiError(404, "Not in a family"));
+    vi.mocked(joinFamilyMock).mockImplementation(() => new Promise<void>((resolve) => { resolveJoin = resolve; }));
+
+    renderFamilyPage("child");
+
+    const pinInput = await screen.findByLabelText(/pin/i);
+    await user.type(pinInput, "ABC123");
+    await user.click(screen.getByRole("button", { name: /join family/i }));
+
+    // Button should show spinner text and be disabled
+    expect(screen.getByText(/joining/i)).toBeInTheDocument();
+    const btn = screen.getByRole("button", { name: /joining/i });
+    expect(btn).toBeDisabled();
+
+    // Resolve the API call
+    resolveJoin();
+
+    // Loading should clear
+    await waitFor(() => {
+      expect(screen.queryByText(/joining/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("clears loading and shows error when Join Family fails with non-403 error", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getFamilyMock).mockRejectedValue(new ApiError(404, "Not in a family"));
+    vi.mocked(joinFamilyMock).mockRejectedValue(new ApiError(404, "Invalid PIN"));
+
+    renderFamilyPage("child");
+
+    const pinInput = await screen.findByLabelText(/pin/i);
+    await user.type(pinInput, "WRONG1");
+    await user.click(screen.getByRole("button", { name: /join family/i }));
+
+    // Error should be visible and loading cleared
+    expect(await screen.findByText(/invalid pin/i)).toBeInTheDocument();
+    expect(screen.queryByText(/joining/i)).not.toBeInTheDocument();
+    // Button should be clickable again
+    expect(screen.getByRole("button", { name: /join family/i })).not.toBeDisabled();
+  });
+
   it("shows styled upgrade prompt when free tier limit is reached", async () => {
     const user = userEvent.setup();
     vi.mocked(getFamilyMock).mockRejectedValue(new ApiError(404, "Not in a family"));
