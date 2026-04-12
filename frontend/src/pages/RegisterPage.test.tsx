@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -98,7 +98,7 @@ describe("RegisterPage", () => {
     await user.click(screen.getByRole("button", { name: /register/i }));
 
     expect(
-      await screen.findByText(/registration failed/i),
+      await screen.findByText(/email already registered/i),
     ).toBeInTheDocument();
   });
 
@@ -108,5 +108,48 @@ describe("RegisterPage", () => {
       "href",
       "/login",
     );
+  });
+
+  it("disables button and shows spinner while API call is in flight", async () => {
+    let resolveRegister!: (v: unknown) => void;
+    vi.mocked(registerMock).mockImplementation(
+      () => new Promise((resolve) => { resolveRegister = resolve; }),
+    );
+
+    const user = userEvent.setup();
+    renderRegister();
+
+    await user.type(screen.getByLabelText(/email/i), "slow@test.com");
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /register/i }));
+
+    const button = screen.getByRole("button");
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent(/registering/i);
+
+    await act(async () => {
+      resolveRegister({ id: 1, email: "slow@test.com", role: "parent", language: "en" });
+    });
+  });
+
+  it("prevents double-submit while loading", async () => {
+    let resolveRegister!: (v: unknown) => void;
+    vi.mocked(registerMock).mockImplementation(
+      () => new Promise((resolve) => { resolveRegister = resolve; }),
+    );
+
+    const user = userEvent.setup();
+    renderRegister();
+
+    await user.type(screen.getByLabelText(/email/i), "dbl@test.com");
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /register/i }));
+
+    await user.click(screen.getByRole("button"));
+    expect(registerMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveRegister({ id: 1, email: "dbl@test.com", role: "parent", language: "en" });
+    });
   });
 });

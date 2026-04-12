@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -210,5 +210,55 @@ describe("LoginPage", () => {
       "href",
       "/register",
     );
+  });
+
+  it("disables button and shows spinner while API call is in flight", async () => {
+    let resolveLogin!: (v: { access_token: string; token_type: string }) => void;
+    vi.mocked(loginMock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+    );
+
+    const user = userEvent.setup();
+    renderLoginWithRoutes();
+
+    await user.type(screen.getByLabelText(/email/i), "slow@test.com");
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /login/i }));
+
+    const button = screen.getByRole("button");
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent(/logging in/i);
+
+    await act(async () => {
+      resolveLogin({ access_token: "token", token_type: "bearer" });
+    });
+  });
+
+  it("prevents double-submit while loading", async () => {
+    let resolveLogin!: (v: { access_token: string; token_type: string }) => void;
+    vi.mocked(loginMock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+    );
+
+    const user = userEvent.setup();
+    renderLoginWithRoutes();
+
+    await user.type(screen.getByLabelText(/email/i), "dbl@test.com");
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /login/i }));
+
+    // Button is disabled, clicking again does nothing
+    await user.click(screen.getByRole("button"));
+    expect(loginMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveLogin({ access_token: "token", token_type: "bearer" });
+    });
   });
 });

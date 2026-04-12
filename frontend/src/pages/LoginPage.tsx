@@ -7,20 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { login as apiLogin, adminLogin as apiAdminLogin } from "@/api";
 import { useAuth } from "@/auth";
+import { useLoading } from "@/hooks/useLoading";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminSecret, setAdminSecret] = useState("");
+  const { isLoading, error, execute } = useLoading();
   const { handleLogin } = useAuth();
   const navigate = useNavigate();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    try {
+    execute(async () => {
       const { access_token } = isAdmin
         ? await apiAdminLogin(adminSecret)
         : await apiLogin(email, password);
@@ -28,9 +28,9 @@ export default function LoginPage() {
       navigate(user.role === "child" ? "/tasks" : "/dashboard", {
         replace: true,
       });
-    } catch {
-      setError("Invalid credentials");
-    }
+    }).catch(() => {
+      // useLoading captures the error; swallow to avoid unhandled rejection
+    });
   }
 
   return (
@@ -86,8 +86,15 @@ export default function LoginPage() {
               <Label htmlFor="admin-toggle">Login as Admin</Label>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Logging in...
+                </span>
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
