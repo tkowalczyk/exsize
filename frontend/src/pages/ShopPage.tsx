@@ -129,6 +129,7 @@ function AvatarShopSection({ user }: { user: UserResponse }) {
                   item={item}
                   owned={ownedIds.has(item.id)}
                   balance={balance}
+                  isPurchasing={purchaseMutation.isPending}
                   onBuy={() => purchaseMutation.mutate(item.id)}
                 />
               ))}
@@ -141,6 +142,7 @@ function AvatarShopSection({ user }: { user: UserResponse }) {
                   item={item}
                   owned={ownedIds.has(item.id)}
                   balance={balance}
+                  isPurchasing={purchaseMutation.isPending}
                   onBuy={() => purchaseMutation.mutate(item.id)}
                 />
               ))}
@@ -157,6 +159,8 @@ function AvatarShopSection({ user }: { user: UserResponse }) {
                   key={item.id}
                   item={item}
                   isEquipped={item.id === equippedIconId}
+                  isEquipping={equipMutation.isPending}
+                  isUnequipping={unequipMutation.isPending}
                   onEquip={() => equipMutation.mutate(item.id)}
                   onUnequip={() => unequipMutation.mutate("icon")}
                 />
@@ -169,6 +173,8 @@ function AvatarShopSection({ user }: { user: UserResponse }) {
                   key={item.id}
                   item={item}
                   isEquipped={item.id === equippedBgId}
+                  isEquipping={equipMutation.isPending}
+                  isUnequipping={unequipMutation.isPending}
                   onEquip={() => equipMutation.mutate(item.id)}
                   onUnequip={() => unequipMutation.mutate("background")}
                 />
@@ -185,11 +191,13 @@ function AvatarShopCard({
   item,
   owned,
   balance,
+  isPurchasing,
   onBuy,
 }: {
   item: AvatarItemResponse;
   owned: boolean;
   balance: number;
+  isPurchasing: boolean;
   onBuy: () => void;
 }) {
   return (
@@ -208,10 +216,17 @@ function AvatarShopCard({
           <Button
             size="sm"
             className="mt-1 h-6 text-xs"
-            disabled={balance < item.price}
+            disabled={balance < item.price || isPurchasing}
             onClick={onBuy}
           >
-            Buy
+            {isPurchasing ? (
+              <span className="flex items-center gap-1">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Buying...
+              </span>
+            ) : (
+              "Buy"
+            )}
           </Button>
         </>
       )}
@@ -222,11 +237,15 @@ function AvatarShopCard({
 function AvatarInventoryCard({
   item,
   isEquipped,
+  isEquipping,
+  isUnequipping,
   onEquip,
   onUnequip,
 }: {
   item: AvatarItemResponse;
   isEquipped: boolean;
+  isEquipping: boolean;
+  isUnequipping: boolean;
   onEquip: () => void;
   onUnequip: () => void;
 }) {
@@ -247,17 +266,33 @@ function AvatarInventoryCard({
           variant="outline"
           size="sm"
           className="mt-1 h-6 text-xs"
+          disabled={isUnequipping}
           onClick={onUnequip}
         >
-          Unequip
+          {isUnequipping ? (
+            <span className="flex items-center gap-1">
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Unequipping...
+            </span>
+          ) : (
+            "Unequip"
+          )}
         </Button>
       ) : (
         <Button
           size="sm"
           className="mt-1 h-6 text-xs"
+          disabled={isEquipping}
           onClick={onEquip}
         >
-          Equip
+          {isEquipping ? (
+            <span className="flex items-center gap-1">
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Equipping...
+            </span>
+          ) : (
+            "Equip"
+          )}
         </Button>
       )}
     </div>

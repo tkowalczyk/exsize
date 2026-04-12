@@ -823,4 +823,195 @@ describe("TasksPage", () => {
     // Should NOT call createTask
     expect(createTaskMock).not.toHaveBeenCalled();
   });
+
+  it("shows spinner and disables Complete button during task completion", async () => {
+    const user = userEvent.setup();
+    let resolveComplete!: () => void;
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+    ]);
+    vi.mocked(completeTaskMock).mockImplementation(
+      () => new Promise<void>((resolve) => { resolveComplete = resolve; }),
+    );
+
+    renderTasksPage("child");
+
+    await user.click(await screen.findByRole("button", { name: /complete/i }));
+
+    expect(screen.getByText(/completing/i)).toBeInTheDocument();
+    const btn = screen.getByRole("button", { name: /completing/i });
+    expect(btn).toBeDisabled();
+
+    resolveComplete();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/completing/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows error and re-enables Complete button when completion fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "Accepted task", description: "", exbucks: 10, status: "accepted", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+    ]);
+    vi.mocked(completeTaskMock).mockRejectedValue(new Error("Task already completed"));
+
+    renderTasksPage("child");
+
+    await user.click(await screen.findByRole("button", { name: /complete/i }));
+
+    expect(await screen.findByText(/task already completed/i)).toBeInTheDocument();
+    expect(screen.queryByText(/completing/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /complete/i })).not.toBeDisabled();
+  });
+
+  it("shows spinner and disables Accept button during task acceptance", async () => {
+    const user = userEvent.setup();
+    let resolveAccept!: () => void;
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "New task", description: "", exbucks: 5, status: "assigned", assigned_to: 1, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+    ]);
+    vi.mocked(acceptTaskMock).mockImplementation(
+      () => new Promise<void>((resolve) => { resolveAccept = resolve; }),
+    );
+
+    renderTasksPage("child");
+
+    await user.click(await screen.findByRole("button", { name: /accept/i }));
+
+    expect(screen.getByText(/accepting/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /accepting/i })).toBeDisabled();
+
+    resolveAccept();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/accepting/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows spinner and disables Approve button during approval", async () => {
+    const user = userEvent.setup();
+    let resolveApprove!: () => void;
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+    ]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(approveTaskMock).mockImplementation(
+      () => new Promise<void>((resolve) => { resolveApprove = resolve; }),
+    );
+
+    renderTasksPage("parent");
+
+    await user.click(await screen.findByRole("button", { name: /approve/i }));
+
+    expect(screen.getByText(/approving/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /approving/i })).toBeDisabled();
+
+    resolveApprove();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/approving/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows spinner and disables Reject button during rejection", async () => {
+    const user = userEvent.setup();
+    let resolveReject!: () => void;
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "Completed task", description: "", exbucks: 10, status: "completed", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+    ]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(rejectTaskMock).mockImplementation(
+      () => new Promise<void>((resolve) => { resolveReject = resolve; }),
+    );
+
+    renderTasksPage("parent");
+
+    await user.click(await screen.findByRole("button", { name: /reject/i }));
+
+    expect(screen.getByText(/rejecting/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /rejecting/i })).toBeDisabled();
+
+    resolveReject();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/rejecting/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows spinner and disables Save button during edit", async () => {
+    const user = userEvent.setup();
+    let resolveEdit!: () => void;
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "Old name", description: "Old desc", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+    ]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(editTaskMock).mockImplementation(
+      () => new Promise<void>((resolve) => { resolveEdit = resolve; }),
+    );
+
+    renderTasksPage("parent");
+
+    await user.click(await screen.findByRole("button", { name: /edit/i }));
+    await user.click(screen.getByRole("button", { name: /save/i }));
+
+    expect(screen.getByText(/saving/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /saving/i })).toBeDisabled();
+
+    resolveEdit();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/saving/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows spinner and disables Confirm button during delete", async () => {
+    const user = userEvent.setup();
+    let resolveDelete!: () => void;
+    vi.mocked(getTasksMock).mockResolvedValue([
+      { id: 1, name: "Task to delete", description: "", exbucks: 5, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+    ]);
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1, pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(deleteTaskMock).mockImplementation(
+      () => new Promise<void>((resolve) => { resolveDelete = resolve; }),
+    );
+
+    renderTasksPage("parent");
+
+    await user.click(await screen.findByRole("button", { name: /delete/i }));
+    await user.click(screen.getByRole("button", { name: /confirm/i }));
+
+    expect(screen.getByText(/deleting/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /deleting/i })).toBeDisabled();
+
+    resolveDelete();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/deleting/i)).not.toBeInTheDocument();
+    });
+  });
 });

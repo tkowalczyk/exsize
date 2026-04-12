@@ -147,7 +147,10 @@ export default function TasksPage({ user }: TasksPageProps) {
     mutationFn: ({ id, photoUrl }: { id: number; photoUrl?: string }) => completeTask(id, photoUrl),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["exbucks-balance"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
+    onError: () => {},
   });
 
   const editMutation = useMutation({
@@ -343,7 +346,16 @@ export default function TasksPage({ user }: TasksPageProps) {
               </select>
             </div>
             <div className="flex gap-2">
-              <Button type="submit" size="sm">Save</Button>
+              <Button type="submit" size="sm" disabled={editMutation.isPending}>
+                {editMutation.isPending ? (
+                  <span className="flex items-center gap-1">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Saving...
+                  </span>
+                ) : (
+                  "Save"
+                )}
+              </Button>
               <Button type="button" variant="outline" size="sm" onClick={() => setEditingId(null)}>Cancel</Button>
             </div>
           </form>
@@ -380,14 +392,50 @@ export default function TasksPage({ user }: TasksPageProps) {
               )}
               {user.role === "parent" && task.status === "completed" && (
                 <>
-                  <Button size="sm" onClick={() => approveMutation.mutate(task.id)}>Approve</Button>
-                  <Button variant="destructive" size="sm" onClick={() => rejectMutation.mutate(task.id)}>Reject</Button>
+                  <Button size="sm" disabled={approveMutation.isPending || rejectMutation.isPending} onClick={() => approveMutation.mutate(task.id)}>
+                    {approveMutation.isPending ? (
+                      <span className="flex items-center gap-1">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Approving...
+                      </span>
+                    ) : (
+                      "Approve"
+                    )}
+                  </Button>
+                  <Button variant="destructive" size="sm" disabled={approveMutation.isPending || rejectMutation.isPending} onClick={() => rejectMutation.mutate(task.id)}>
+                    {rejectMutation.isPending ? (
+                      <span className="flex items-center gap-1">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Rejecting...
+                      </span>
+                    ) : (
+                      "Reject"
+                    )}
+                  </Button>
                 </>
               )}
               {user.role === "child" && task.status === "assigned" && (
                 <>
-                  <Button size="sm" onClick={() => acceptMutation.mutate(task.id)}>Accept</Button>
-                  <Button size="sm" variant="outline" onClick={() => rejectMutation.mutate(task.id)}>Reject</Button>
+                  <Button size="sm" disabled={acceptMutation.isPending || rejectMutation.isPending} onClick={() => acceptMutation.mutate(task.id)}>
+                    {acceptMutation.isPending ? (
+                      <span className="flex items-center gap-1">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Accepting...
+                      </span>
+                    ) : (
+                      "Accept"
+                    )}
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={acceptMutation.isPending || rejectMutation.isPending} onClick={() => rejectMutation.mutate(task.id)}>
+                    {rejectMutation.isPending ? (
+                      <span className="flex items-center gap-1">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Rejecting...
+                      </span>
+                    ) : (
+                      "Reject"
+                    )}
+                  </Button>
                 </>
               )}
               {user.role === "child" && task.status === "accepted" && (
@@ -402,7 +450,19 @@ export default function TasksPage({ user }: TasksPageProps) {
                   ) : (
                     <Lock className="h-4 w-4 text-muted-foreground" aria-label="SizePass required" />
                   )}
-                  <Button size="sm" onClick={() => completeMutation.mutate({ id: task.id, photoUrl: hasSizePass ? (photoUrls[task.id] || undefined) : undefined })}>Complete</Button>
+                  <Button size="sm" disabled={completeMutation.isPending} onClick={() => completeMutation.mutate({ id: task.id, photoUrl: hasSizePass ? (photoUrls[task.id] || undefined) : undefined })}>
+                    {completeMutation.isPending ? (
+                      <span className="flex items-center gap-1">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Completing...
+                      </span>
+                    ) : (
+                      "Complete"
+                    )}
+                  </Button>
+                  {completeMutation.isError && (
+                    <span className="text-xs text-destructive">{(completeMutation.error as Error)?.message}</span>
+                  )}
                 </>
               )}
             </div>
@@ -413,7 +473,16 @@ export default function TasksPage({ user }: TasksPageProps) {
           <div className="mt-2 rounded border border-red-200 bg-red-50 p-3">
             <p className="text-sm">Are you sure you want to delete this task?</p>
             <div className="mt-2 flex gap-2">
-              <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(task.id)}>Confirm</Button>
+              <Button size="sm" variant="destructive" disabled={deleteMutation.isPending} onClick={() => deleteMutation.mutate(task.id)}>
+                {deleteMutation.isPending ? (
+                  <span className="flex items-center gap-1">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Deleting...
+                  </span>
+                ) : (
+                  "Confirm"
+                )}
+              </Button>
               <Button size="sm" variant="outline" onClick={() => setDeletingId(null)}>Cancel</Button>
             </div>
           </div>

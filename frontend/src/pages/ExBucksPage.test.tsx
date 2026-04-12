@@ -203,4 +203,71 @@ describe("ExBucksPage", () => {
     expect(screen.getByText("Clean room")).toBeInTheDocument();
     expect(screen.getByText("+10")).toBeInTheDocument();
   });
+
+  it("shows spinner and disables Assign Penalty button during submission", async () => {
+    const user = userEvent.setup();
+    let resolvePenalty!: () => void;
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(assignPenaltyMock).mockImplementation(
+      () => new Promise<void>((resolve) => { resolvePenalty = resolve; }),
+    );
+
+    renderExBucksPage("parent");
+
+    const penaltySelect = await screen.findByLabelText(/penalty child/i);
+    await waitFor(() => {
+      expect(penaltySelect.querySelectorAll("option")).toHaveLength(2);
+    });
+
+    await user.selectOptions(penaltySelect, "2");
+    await user.type(screen.getByLabelText(/amount/i), "5");
+    await user.type(screen.getByLabelText(/reason/i), "Messy room");
+    await user.click(screen.getByRole("button", { name: /assign penalty/i }));
+
+    expect(screen.getByText(/assigning/i)).toBeInTheDocument();
+    const btn = screen.getByRole("button", { name: /assigning/i });
+    expect(btn).toBeDisabled();
+
+    resolvePenalty();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/assigning/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows error and re-enables Assign Penalty button when penalty fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getFamilyMock).mockResolvedValue({
+      id: 1,
+      pin: "ABC123",
+      members: [
+        { id: 1, email: "parent@test.com", role: "parent" },
+        { id: 2, email: "child@test.com", role: "child" },
+      ],
+    });
+    vi.mocked(assignPenaltyMock).mockRejectedValue(new Error("Insufficient balance"));
+
+    renderExBucksPage("parent");
+
+    const penaltySelect = await screen.findByLabelText(/penalty child/i);
+    await waitFor(() => {
+      expect(penaltySelect.querySelectorAll("option")).toHaveLength(2);
+    });
+
+    await user.selectOptions(penaltySelect, "2");
+    await user.type(screen.getByLabelText(/amount/i), "5");
+    await user.type(screen.getByLabelText(/reason/i), "Messy room");
+    await user.click(screen.getByRole("button", { name: /assign penalty/i }));
+
+    expect(await screen.findByText(/insufficient balance/i)).toBeInTheDocument();
+    expect(screen.queryByText(/assigning/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /assign penalty/i })).not.toBeDisabled();
+  });
 });

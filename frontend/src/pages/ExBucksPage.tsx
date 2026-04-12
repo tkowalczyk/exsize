@@ -97,6 +97,7 @@ export default function ExBucksPage({ user }: ExBucksPageProps) {
       setPenaltyAmount("");
       setPenaltyReason("");
     },
+    onError: () => {},
   });
 
   const children = family?.members.filter((m) => m.role === "child") ?? [];
@@ -205,7 +206,19 @@ export default function ExBucksPage({ user }: ExBucksPageProps) {
                   onChange={(e) => setPenaltyReason(e.target.value)}
                 />
               </div>
-              <Button type="submit">Assign Penalty</Button>
+              <Button type="submit" disabled={penaltyMutation.isPending}>
+                {penaltyMutation.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Assigning...
+                  </span>
+                ) : (
+                  "Assign Penalty"
+                )}
+              </Button>
+              {penaltyMutation.isError && (
+                <p className="text-sm text-destructive">{(penaltyMutation.error as Error)?.message}</p>
+              )}
             </form>
           </CardContent>
         </Card>
