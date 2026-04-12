@@ -7,6 +7,7 @@ import { getBalance, getGamificationProfile, type UserResponse } from "@/api";
 import { useAuth } from "@/auth";
 import ParentBottomTabBar from "@/components/ParentBottomTabBar";
 import ParentTopBar from "@/components/ParentTopBar";
+import ChildBottomTabBar from "@/components/ChildBottomTabBar";
 
 const SIZEPASS_COLORS = [
   "#ff6b6b", // S - red
@@ -183,6 +184,7 @@ export default function AppLayout({ user, children }: AppLayoutProps) {
         {children}
       </main>
       {user.role === "parent" && <ParentBottomTabBar />}
+      {user.role === "child" && <ChildBottomTabBar />}
     </div>
   );
 }

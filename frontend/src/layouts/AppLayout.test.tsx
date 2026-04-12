@@ -105,12 +105,12 @@ describe("AppLayout", () => {
       role: "child",
       language: "en",
     });
-    expect(screen.getByText(/tasks/i)).toBeInTheDocument();
-    expect(screen.getByText(/family/i)).toBeInTheDocument();
-    expect(screen.getByText(/shop/i)).toBeInTheDocument();
-    expect(screen.getByText(/profile/i)).toBeInTheDocument();
-    expect(screen.getByText(/leaderboard/i)).toBeInTheDocument();
-    expect(screen.getByText(/settings/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/tasks/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/family/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/shop/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/profile/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/leaderboard/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/settings/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
   });
 
@@ -217,5 +217,29 @@ describe("AppLayout", () => {
       language: "en",
     });
     expect(screen.queryByLabelText("Add task")).not.toBeInTheDocument();
+  });
+
+  it("child sees child bottom tab bar with Tasks, Shop, Leaderboard, Menu", () => {
+    renderLayoutWithUser({
+      id: 2,
+      email: "child@test.com",
+      role: "child",
+      language: "en",
+    });
+    expect(screen.getByLabelText("Tasks")).toBeInTheDocument();
+    expect(screen.getByLabelText("Shop")).toBeInTheDocument();
+    expect(screen.getByLabelText("Leaderboard")).toBeInTheDocument();
+    expect(screen.getByLabelText("Menu")).toBeInTheDocument();
+  });
+
+  it("parent does not see child bottom tab bar", () => {
+    renderLayoutWithUser({
+      id: 1,
+      email: "parent@test.com",
+      role: "parent",
+      language: "en",
+    });
+    expect(screen.queryByLabelText("Leaderboard")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Menu")).not.toBeInTheDocument();
   });
 });
