@@ -14,6 +14,7 @@ vi.mock("@/api", async (importOriginal) => {
     getMe: vi.fn(),
     getBalance: vi.fn(),
     getGamificationProfile: vi.fn(),
+    getProfile: vi.fn(),
   };
 });
 
@@ -21,6 +22,7 @@ import {
   setToken as setTokenMock,
   getBalance as getBalanceMock,
   getGamificationProfile as getProfileMock,
+  getProfile as getFullProfileMock,
 } from "@/api";
 import type { UserResponse } from "@/api";
 
@@ -241,5 +243,53 @@ describe("AppLayout", () => {
     });
     expect(screen.queryByLabelText("Leaderboard")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Menu")).not.toBeInTheDocument();
+  });
+
+  it("child sees mobile top bar with stats from profile", async () => {
+    vi.mocked(getBalanceMock).mockResolvedValue({ balance: 42 });
+    vi.mocked(getProfileMock).mockResolvedValue({
+      xp: 100,
+      level: 3,
+      level_name: "Rookie",
+      progress_percent: 50,
+      xp_for_next_level: 200,
+      streak: 7,
+    });
+    vi.mocked(getFullProfileMock).mockResolvedValue({
+      nickname: "kid",
+      nickname_changes: 0,
+      xp: 100,
+      level: 3,
+      level_name: "Rookie",
+      progress_percent: 50,
+      xp_for_next_level: 200,
+      streak: 7,
+      exbucks_balance: 42,
+      badges: ["first_task", "streak_3"],
+      transactions: [],
+    });
+
+    renderLayoutWithUser({
+      id: 2,
+      email: "child@test.com",
+      role: "child",
+      language: "en",
+    });
+
+    // ChildTasksTopBar renders — Badges is unique to this component
+    expect(await screen.findByLabelText("Badges")).toHaveTextContent("2");
+  });
+
+  it("parent does not see child mobile top bar", async () => {
+    renderLayoutWithUser({
+      id: 1,
+      email: "parent@test.com",
+      role: "parent",
+      language: "en",
+    });
+
+    expect(await screen.findByText(/page content/i)).toBeInTheDocument();
+    // ChildTasksTopBar has aria-label="Badges" — parent should not see it
+    expect(screen.queryByLabelText("Badges")).not.toBeInTheDocument();
   });
 });

@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getBalance, getGamificationProfile, type UserResponse } from "@/api";
+import { getBalance, getGamificationProfile, getProfile, type UserResponse } from "@/api";
 import { useAuth } from "@/auth";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import ParentBottomTabBar from "@/components/ParentBottomTabBar";
 import ParentTopBar from "@/components/ParentTopBar";
 import ChildBottomTabBar from "@/components/ChildBottomTabBar";
+import ChildTasksTopBar from "@/components/ChildTasksTopBar";
 
 const SIZEPASS_COLORS = [
   "#ff6b6b", // S - red
@@ -96,9 +97,24 @@ export default function AppLayout({ user, children }: AppLayoutProps) {
     enabled: user.role === "child",
   });
 
+  const { data: fullProfileData } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getProfile,
+    retry: false,
+    enabled: user.role === "child",
+  });
+
   return (
     <div className="flex min-h-screen flex-col">
       {user.role === "parent" && <ParentTopBar dark={dark} toggleDark={toggleDark} logout={logout} />}
+      {user.role === "child" && fullProfileData && (
+        <ChildTasksTopBar
+          badges={fullProfileData.badges}
+          streak={fullProfileData.streak}
+          level={fullProfileData.level}
+          exbucksBalance={fullProfileData.exbucks_balance}
+        />
+      )}
       <header className="border-b bg-background md:block hidden">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <nav className="flex gap-4">
