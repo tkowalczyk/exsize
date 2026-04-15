@@ -242,4 +242,51 @@ describe("DashboardPage", () => {
     expect(screen.getByText("30")).toBeInTheDocument(); // earned
     expect(screen.getByText(/alice@test\.com: 2\/2/)).toBeInTheDocument();
   });
+
+  describe("responsive layout", () => {
+    it("weekly overview rows stack day label and entries on mobile", async () => {
+      vi.mocked(getDashboardMock).mockResolvedValue({
+        children: [
+          { id: 2, email: "alice@test.com", tasks_completed_percent: 50, streak: 1, exbucks_earned: 10, exbucks_spent: 0 },
+        ],
+        weekly_overview: {
+          Monday: [{ child_id: 2, email: "alice@test.com", total: 3, approved: 2 }],
+          Tuesday: [],
+          Wednesday: [],
+          Thursday: [],
+          Friday: [],
+          Saturday: [],
+          Sunday: [],
+        },
+        advanced_stats: null,
+      });
+
+      renderDashboard();
+
+      const mondayLabel = await screen.findByText("Monday");
+      const row = mondayLabel.closest("[data-testid='weekly-day-row']");
+      expect(row).toBeInTheDocument();
+      expect(row!.className).toMatch(/flex-col/);
+      expect(row!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("child stat cards grid is single column on mobile", async () => {
+      vi.mocked(getDashboardMock).mockResolvedValue({
+        children: [
+          { id: 2, email: "alice@test.com", tasks_completed_percent: 75, streak: 3, exbucks_earned: 50, exbucks_spent: 20 },
+          { id: 3, email: "bob@test.com", tasks_completed_percent: 40, streak: 1, exbucks_earned: 30, exbucks_spent: 10 },
+        ],
+        weekly_overview: {},
+        advanced_stats: null,
+      });
+
+      renderDashboard();
+
+      const childName = await screen.findByText("alice@test.com");
+      const grid = childName.closest("[data-testid='children-grid']");
+      expect(grid).toBeInTheDocument();
+      expect(grid!.className).toMatch(/grid/);
+      expect(grid!.className).toMatch(/sm:grid-cols-2/);
+    });
+  });
 });

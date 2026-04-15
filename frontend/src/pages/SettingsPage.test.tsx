@@ -326,4 +326,42 @@ describe("SettingsPage", () => {
     ).not.toBeInTheDocument();
     u2();
   });
+
+  describe("responsive layout", () => {
+    it("destructive buttons have minimum 44px touch target on mobile", async () => {
+      vi.mocked(getSubscriptionMock).mockResolvedValue({ plan: "free", status: "free" });
+
+      renderSettings("parent");
+
+      const deleteBtn = await screen.findByRole("button", { name: /delete my account/i });
+      expect(deleteBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+
+    it("nickname form stacks vertically on mobile", async () => {
+      vi.mocked(getSubscriptionMock).mockResolvedValue({ plan: "free", status: "free" });
+      vi.mocked(getProfileMock).mockResolvedValue({
+        nickname: "Nick",
+        xp: 0, level: 1, level_name: "Beginner", progress_percent: 0,
+        xp_for_next_level: 100, streak: 0, exbucks_balance: 0,
+        badges: ["Freemium"], transactions: [],
+      } as ProfileResponse);
+
+      renderSettings("child");
+
+      const nicknameInput = await screen.findByLabelText(/nickname/i);
+      const form = nicknameInput.closest("form");
+      expect(form).toBeInTheDocument();
+      expect(form!.className).toMatch(/flex-col/);
+      expect(form!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("cancel subscription button has minimum 44px touch target on mobile", async () => {
+      vi.mocked(getSubscriptionMock).mockResolvedValue({ plan: "monthly", status: "active" });
+
+      renderSettings("parent");
+
+      const cancelBtn = await screen.findByRole("button", { name: /cancel subscription/i });
+      expect(cancelBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+  });
 });

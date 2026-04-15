@@ -259,7 +259,7 @@ export default function FamilyPage({ user }: FamilyPageProps) {
                 {family.members.map((member) => (
                   <li
                     key={member.id}
-                    className="flex items-center justify-between rounded border p-2"
+                    className="flex flex-col gap-2 rounded border p-2 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex flex-col">
                       <span>{member.email}</span>
@@ -272,6 +272,7 @@ export default function FamilyPage({ user }: FamilyPageProps) {
                         <Button
                           variant="destructive"
                           size="sm"
+                          className="min-h-[44px] sm:min-h-0"
                           onClick={() => removeMutation.mutate(member.id)}
                         >
                           Remove
@@ -279,6 +280,7 @@ export default function FamilyPage({ user }: FamilyPageProps) {
                         <Button
                           variant="destructive"
                           size="sm"
+                          className="min-h-[44px] sm:min-h-0"
                           onClick={() => setDeletingChildId(member.id)}
                         >
                           Delete Account

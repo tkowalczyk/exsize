@@ -34,7 +34,7 @@ function NicknameCard({ currentNickname }: { currentNickname: string | null }) {
       </CardHeader>
       <CardContent>
         <form
-          className="flex items-end gap-2"
+          className="flex flex-col gap-2 sm:flex-row sm:items-end"
           onSubmit={(e) => {
             e.preventDefault();
             if (nickname.trim()) mutation.mutate(nickname.trim());
@@ -48,7 +48,7 @@ function NicknameCard({ currentNickname }: { currentNickname: string | null }) {
               onChange={(e) => setNicknameValue(e.target.value)}
             />
           </div>
-          <Button type="submit">Save Nickname</Button>
+          <Button type="submit" className="min-h-[44px] sm:min-h-0">Save Nickname</Button>
         </form>
       </CardContent>
     </Card>
@@ -119,6 +119,7 @@ export default function SettingsPage({ user }: SettingsPageProps) {
               {subscription.status === "active" && (user.role === "parent" || user.role === "admin") && (
                 <Button
                   variant="destructive"
+                  className="min-h-[44px] sm:min-h-0"
                   disabled={cancelling}
                   onClick={handleCancel}
                 >
@@ -150,6 +151,7 @@ export default function SettingsPage({ user }: SettingsPageProps) {
           {user.role === "child" && !deletionRequested && !showDeleteConfirm && (
             <Button
               variant="destructive"
+              className="min-h-[44px] sm:min-h-0"
               onClick={() => setShowDeleteConfirm(true)}
             >
               Request Account Deletion
@@ -191,6 +193,7 @@ export default function SettingsPage({ user }: SettingsPageProps) {
           {user.role === "parent" && !showDeleteConfirm && (
             <Button
               variant="destructive"
+              className="min-h-[44px] sm:min-h-0"
               onClick={() => setShowDeleteConfirm(true)}
             >
               Delete My Account

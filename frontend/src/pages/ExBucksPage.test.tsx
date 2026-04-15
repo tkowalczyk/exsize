@@ -242,6 +242,37 @@ describe("ExBucksPage", () => {
     });
   });
 
+  describe("responsive layout", () => {
+    it("transaction items stack description and amount/date on mobile", async () => {
+      vi.mocked(getTransactionsMock).mockResolvedValue([
+        { id: 1, type: "earned", amount: 10, description: "Clean room", created_at: "2026-03-24T10:00:00" },
+      ]);
+
+      renderExBucksPage("child");
+
+      const desc = await screen.findByText("Clean room");
+      const txnItem = desc.closest("[data-testid='transaction-item']");
+      expect(txnItem).toBeInTheDocument();
+      expect(txnItem!.className).toMatch(/flex-col/);
+      expect(txnItem!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("penalty form buttons have minimum 44px touch target on mobile", async () => {
+      vi.mocked(getFamilyMock).mockResolvedValue({
+        id: 1, pin: "ABC123",
+        members: [
+          { id: 1, email: "parent@test.com", role: "parent" },
+          { id: 2, email: "child@test.com", role: "child" },
+        ],
+      });
+
+      renderExBucksPage("parent");
+
+      const btn = await screen.findByRole("button", { name: /assign penalty/i });
+      expect(btn.className).toMatch(/min-h-\[44px\]/);
+    });
+  });
+
   it("shows error and re-enables Assign Penalty button when penalty fails", async () => {
     const user = userEvent.setup();
     vi.mocked(getFamilyMock).mockResolvedValue({

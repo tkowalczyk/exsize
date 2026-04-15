@@ -135,7 +135,7 @@ export default function SizePassPage({ user }: SizePassPageProps) {
 
       {isActive && (
         <Card>
-          <CardContent className="flex items-center justify-between pt-6">
+          <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between" data-testid="sizepass-active-card">
             <div>
               <p className="text-lg font-semibold">
                 SizePass Active — {subscription.plan}
@@ -147,6 +147,7 @@ export default function SizePassPage({ user }: SizePassPageProps) {
             {isParent && (
               <Button
                 variant="destructive"
+                className="min-h-[44px] sm:min-h-0"
                 disabled={cancelling}
                 onClick={handleCancel}
               >
@@ -161,7 +162,7 @@ export default function SizePassPage({ user }: SizePassPageProps) {
 
       {!isActive && (
         <>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2" data-testid="plans-grid">
             {PLANS.map((plan) => (
               <Card
                 key={plan.id}

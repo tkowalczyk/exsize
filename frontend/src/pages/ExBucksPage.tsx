@@ -33,7 +33,8 @@ function TransactionList({ transactions }: { transactions: TransactionResponse[]
       {transactions.map((txn) => (
         <div
           key={txn.id}
-          className="flex items-center justify-between rounded border p-3"
+          data-testid="transaction-item"
+          className="flex flex-col gap-1 rounded border p-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
             <span className="font-medium">{txn.description}</span>
@@ -206,7 +207,7 @@ export default function ExBucksPage({ user }: ExBucksPageProps) {
                   onChange={(e) => setPenaltyReason(e.target.value)}
                 />
               </div>
-              <Button type="submit" disabled={penaltyMutation.isPending}>
+              <Button type="submit" className="min-h-[44px] sm:min-h-0" disabled={penaltyMutation.isPending}>
                 {penaltyMutation.isPending ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

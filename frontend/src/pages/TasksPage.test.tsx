@@ -1014,4 +1014,49 @@ describe("TasksPage", () => {
       expect(screen.queryByText(/deleting/i)).not.toBeInTheDocument();
     });
   });
+
+  describe("responsive layout", () => {
+    it("task item stacks info and actions vertically on mobile", async () => {
+      vi.mocked(getTasksMock).mockResolvedValue([
+        { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      ]);
+      vi.mocked(getFamilyMock).mockResolvedValue({
+        id: 1, pin: "ABC123",
+        members: [
+          { id: 1, email: "parent@test.com", role: "parent" },
+          { id: 2, email: "child@test.com", role: "child" },
+        ],
+      });
+
+      renderTasksPage("parent");
+
+      const taskName = await screen.findByText("Clean room");
+      const taskItem = taskName.closest("[data-testid='task-item']");
+      expect(taskItem).toBeInTheDocument();
+
+      // Layout wrapper should stack vertically on mobile, row on sm+
+      const layoutWrapper = taskItem!.querySelector("[data-testid='task-item-layout']");
+      expect(layoutWrapper).toBeInTheDocument();
+      expect(layoutWrapper!.className).toMatch(/flex-col/);
+      expect(layoutWrapper!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("task action buttons have minimum 44px touch target", async () => {
+      vi.mocked(getTasksMock).mockResolvedValue([
+        { id: 1, name: "Clean room", description: "Tidy up", exbucks: 10, status: "assigned", assigned_to: 2, day_of_week: null, photo_url: null, avatar_icon: null, avatar_background: null },
+      ]);
+      vi.mocked(getFamilyMock).mockResolvedValue({
+        id: 1, pin: "ABC123",
+        members: [
+          { id: 1, email: "parent@test.com", role: "parent" },
+          { id: 2, email: "child@test.com", role: "child" },
+        ],
+      });
+
+      renderTasksPage("parent");
+
+      const editBtn = await screen.findByRole("button", { name: "Edit" });
+      expect(editBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+  });
 });

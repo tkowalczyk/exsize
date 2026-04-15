@@ -43,7 +43,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
       )}
 
       {data && data.children.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2" data-testid="children-grid">
           {data.children.map((child) => (
             <Card key={child.id}>
               <CardHeader>
@@ -134,8 +134,8 @@ export default function DashboardPage({ user }: DashboardPageProps) {
               {DAYS.map((day) => {
                 const entries = data.weekly_overview[day] ?? [];
                 return (
-                  <div key={day} className="flex items-start gap-4">
-                    <span className="w-24 shrink-0 font-medium">{day}</span>
+                  <div key={day} className="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-4" data-testid="weekly-day-row">
+                    <span className="font-medium sm:w-24 sm:shrink-0">{day}</span>
                     <div className="flex flex-wrap gap-2">
                       {entries.length === 0 ? (
                         <span className="text-sm text-muted-foreground">—</span>

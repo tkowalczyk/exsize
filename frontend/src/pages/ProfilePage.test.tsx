@@ -247,4 +247,27 @@ describe("ProfilePage", () => {
     expect(await screen.findByText("ChildNick")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /save nickname/i })).not.toBeInTheDocument();
   });
+
+  describe("responsive layout", () => {
+    it("nickname form stacks vertically on mobile", async () => {
+      vi.mocked(getProfileMock).mockResolvedValue({ ...MOCK_PROFILE, nickname: "Nick" });
+
+      renderProfilePage("child");
+
+      const nicknameInput = await screen.findByLabelText(/nickname/i);
+      const form = nicknameInput.closest("form");
+      expect(form).toBeInTheDocument();
+      expect(form!.className).toMatch(/flex-col/);
+      expect(form!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("save nickname button has minimum 44px touch target on mobile", async () => {
+      vi.mocked(getProfileMock).mockResolvedValue({ ...MOCK_PROFILE, nickname: "Nick" });
+
+      renderProfilePage("child");
+
+      const saveBtn = await screen.findByRole("button", { name: /save nickname/i });
+      expect(saveBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+  });
 });

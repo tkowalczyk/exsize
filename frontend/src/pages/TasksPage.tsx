@@ -299,7 +299,7 @@ export default function TasksPage({ user }: TasksPageProps) {
 
   function renderTaskItem(task: TaskResponse) {
     return (
-      <div key={task.id} className="rounded border p-3">
+      <div key={task.id} className="rounded border p-3" data-testid="task-item">
         {editingId === task.id ? (
           <form
             className="space-y-3"
@@ -360,11 +360,11 @@ export default function TasksPage({ user }: TasksPageProps) {
             </div>
           </form>
         ) : (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" data-testid="task-item-layout">
             <div className="flex items-center gap-3">
               <Avatar icon={task.avatar_icon} background={task.avatar_background} size="sm" />
               <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">{task.name}</span>
                 <StatusBadge status={task.status} />
                 {user.role === "parent" && task.day_of_week && (
@@ -383,16 +383,16 @@ export default function TasksPage({ user }: TasksPageProps) {
               )}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {user.role === "parent" && !["completed", "approved"].includes(task.status) && (
                 <>
-                  <Button size="sm" variant="outline" onClick={() => startEditing(task)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => setDeletingId(task.id)}>Delete</Button>
+                  <Button size="sm" variant="outline" className="min-h-[44px] sm:min-h-0" onClick={() => startEditing(task)}>Edit</Button>
+                  <Button size="sm" variant="destructive" className="min-h-[44px] sm:min-h-0" onClick={() => setDeletingId(task.id)}>Delete</Button>
                 </>
               )}
               {user.role === "parent" && task.status === "completed" && (
                 <>
-                  <Button size="sm" disabled={approveMutation.isPending || rejectMutation.isPending} onClick={() => approveMutation.mutate(task.id)}>
+                  <Button size="sm" className="min-h-[44px] sm:min-h-0" disabled={approveMutation.isPending || rejectMutation.isPending} onClick={() => approveMutation.mutate(task.id)}>
                     {approveMutation.isPending ? (
                       <span className="flex items-center gap-1">
                         <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -402,7 +402,7 @@ export default function TasksPage({ user }: TasksPageProps) {
                       "Approve"
                     )}
                   </Button>
-                  <Button variant="destructive" size="sm" disabled={approveMutation.isPending || rejectMutation.isPending} onClick={() => rejectMutation.mutate(task.id)}>
+                  <Button variant="destructive" size="sm" className="min-h-[44px] sm:min-h-0" disabled={approveMutation.isPending || rejectMutation.isPending} onClick={() => rejectMutation.mutate(task.id)}>
                     {rejectMutation.isPending ? (
                       <span className="flex items-center gap-1">
                         <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -416,7 +416,7 @@ export default function TasksPage({ user }: TasksPageProps) {
               )}
               {user.role === "child" && task.status === "assigned" && (
                 <>
-                  <Button size="sm" disabled={acceptMutation.isPending || rejectMutation.isPending} onClick={() => acceptMutation.mutate(task.id)}>
+                  <Button size="sm" className="min-h-[44px] sm:min-h-0" disabled={acceptMutation.isPending || rejectMutation.isPending} onClick={() => acceptMutation.mutate(task.id)}>
                     {acceptMutation.isPending ? (
                       <span className="flex items-center gap-1">
                         <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -426,7 +426,7 @@ export default function TasksPage({ user }: TasksPageProps) {
                       "Accept"
                     )}
                   </Button>
-                  <Button size="sm" variant="outline" disabled={acceptMutation.isPending || rejectMutation.isPending} onClick={() => rejectMutation.mutate(task.id)}>
+                  <Button size="sm" variant="outline" className="min-h-[44px] sm:min-h-0" disabled={acceptMutation.isPending || rejectMutation.isPending} onClick={() => rejectMutation.mutate(task.id)}>
                     {rejectMutation.isPending ? (
                       <span className="flex items-center gap-1">
                         <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -450,7 +450,7 @@ export default function TasksPage({ user }: TasksPageProps) {
                   ) : (
                     <Lock className="h-4 w-4 text-muted-foreground" aria-label="SizePass required" />
                   )}
-                  <Button size="sm" disabled={completeMutation.isPending} onClick={() => completeMutation.mutate({ id: task.id, photoUrl: hasSizePass ? (photoUrls[task.id] || undefined) : undefined })}>
+                  <Button size="sm" className="min-h-[44px] sm:min-h-0" disabled={completeMutation.isPending} onClick={() => completeMutation.mutate({ id: task.id, photoUrl: hasSizePass ? (photoUrls[task.id] || undefined) : undefined })}>
                     {completeMutation.isPending ? (
                       <span className="flex items-center gap-1">
                         <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />

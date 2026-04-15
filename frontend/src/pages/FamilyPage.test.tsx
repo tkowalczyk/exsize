@@ -450,4 +450,43 @@ describe("FamilyPage", () => {
     expect(screen.getByText(/upgrade to sizepass/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /upgrade/i })).toBeInTheDocument();
   });
+
+  describe("responsive layout", () => {
+    it("member list items stack vertically on mobile", async () => {
+      vi.mocked(getFamilyMock).mockResolvedValue({
+        id: 1,
+        pin: "ABC123",
+        members: [
+          { id: 1, email: "parent@test.com", role: "parent" },
+          { id: 2, email: "child@test.com", role: "child" },
+        ],
+      });
+      vi.mocked(getDeletionRequestsMock).mockResolvedValue([]);
+
+      renderFamilyPage("parent");
+
+      const childEmail = await screen.findByText("child@test.com");
+      const memberItem = childEmail.closest("li");
+      expect(memberItem).toBeInTheDocument();
+      expect(memberItem!.className).toMatch(/flex-col/);
+      expect(memberItem!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("member action buttons have minimum 44px touch target on mobile", async () => {
+      vi.mocked(getFamilyMock).mockResolvedValue({
+        id: 1,
+        pin: "ABC123",
+        members: [
+          { id: 1, email: "parent@test.com", role: "parent" },
+          { id: 2, email: "child@test.com", role: "child" },
+        ],
+      });
+      vi.mocked(getDeletionRequestsMock).mockResolvedValue([]);
+
+      renderFamilyPage("parent");
+
+      const removeBtn = await screen.findByRole("button", { name: "Remove" });
+      expect(removeBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+  });
 });

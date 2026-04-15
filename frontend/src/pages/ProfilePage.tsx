@@ -74,7 +74,7 @@ function NicknameForm({ currentNickname, nicknameChanges }: { currentNickname: s
 
   return (
     <div className="space-y-2">
-      <form className="flex items-end gap-2" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-2 sm:flex-row sm:items-end" onSubmit={handleSubmit}>
         <div className="flex-1">
           <Label htmlFor="nickname">Nickname</Label>
           <Input
@@ -83,7 +83,7 @@ function NicknameForm({ currentNickname, nicknameChanges }: { currentNickname: s
             onChange={(e) => setNicknameValue(e.target.value)}
           />
         </div>
-        <Button type="submit">Save Nickname</Button>
+        <Button type="submit" className="min-h-[44px] sm:min-h-0">Save Nickname</Button>
       </form>
       {willCost && !showConfirm && (
         <p className="text-xs text-muted-foreground">Changing nickname costs 50 ExBucks.</p>
