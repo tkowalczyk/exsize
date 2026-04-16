@@ -4,7 +4,7 @@ primary_region = 'fra'
 [build]
 
 [env]
-  DATABASE_URL = 'sqlite:////data/exsize.db'
+  # DATABASE_URL set via `fly secrets set` (Neon PostgreSQL main branch)
   CORS_ORIGINS = 'https://exsize.crstl.workers.dev'
 
 [http_service]
