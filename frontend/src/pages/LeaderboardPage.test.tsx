@@ -261,6 +261,44 @@ describe("LeaderboardPage", () => {
     expect(screen.getByText(/7 streak/)).toBeInTheDocument();
   });
 
+  describe("responsive layout", () => {
+    it("leaderboard rows stack vertically on mobile", async () => {
+      vi.mocked(getGlobalLeaderboardMock).mockResolvedValue({
+        entries: [
+          {
+            id: 10, email: "alice@test.com", nickname: null,
+            avatar_icon: null, avatar_background: null,
+            xp: 500, level: 5, streak: 3, position: 1,
+          },
+        ],
+        user_entry: null,
+      });
+
+      renderLeaderboard();
+      await screen.findByText("alice@test.com");
+
+      const row = screen.getByText("alice@test.com").closest("[data-testid='leaderboard-row']");
+      expect(row).toBeInTheDocument();
+      expect(row!.className).toMatch(/flex-col/);
+      expect(row!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("tab buttons have minimum 44px touch target on mobile", async () => {
+      vi.mocked(getGlobalLeaderboardMock).mockResolvedValue({
+        entries: [],
+        user_entry: null,
+      });
+
+      renderLeaderboard();
+      await screen.findByText("Leaderboard");
+
+      const globalBtn = screen.getByRole("button", { name: "Global" });
+      const familyBtn = screen.getByRole("button", { name: "Family" });
+      expect(globalBtn.className).toMatch(/min-h-\[44px\]/);
+      expect(familyBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+  });
+
   it("shows streak info in global leaderboard entries", async () => {
     vi.mocked(getGlobalLeaderboardMock).mockResolvedValue({
       entries: [

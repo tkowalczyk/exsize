@@ -88,7 +88,7 @@ function AvatarShopSection({ user }: { user: UserResponse }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" data-testid="shop-header">
           <CardTitle>Avatars</CardTitle>
           <div className="flex items-center gap-3">
             <Avatar
@@ -106,6 +106,7 @@ function AvatarShopSection({ user }: { user: UserResponse }) {
           <Button
             variant={tab === "shop" ? "default" : "outline"}
             size="sm"
+            className="min-h-[44px] sm:min-h-0"
             onClick={() => setTab("shop")}
           >
             Shop
@@ -113,6 +114,7 @@ function AvatarShopSection({ user }: { user: UserResponse }) {
           <Button
             variant={tab === "inventory" ? "default" : "outline"}
             size="sm"
+            className="min-h-[44px] sm:min-h-0"
             onClick={() => setTab("inventory")}
           >
             My Items
@@ -215,7 +217,7 @@ function AvatarShopCard({
           <span className="text-xs text-muted-foreground">{item.price} EB</span>
           <Button
             size="sm"
-            className="mt-1 h-6 text-xs"
+            className="mt-1 h-6 min-h-[44px] text-xs sm:min-h-0"
             disabled={balance < item.price || isPurchasing}
             onClick={onBuy}
           >
@@ -265,7 +267,7 @@ function AvatarInventoryCard({
         <Button
           variant="outline"
           size="sm"
-          className="mt-1 h-6 text-xs"
+          className="mt-1 h-6 min-h-[44px] text-xs sm:min-h-0"
           disabled={isUnequipping}
           onClick={onUnequip}
         >
@@ -281,7 +283,7 @@ function AvatarInventoryCard({
       ) : (
         <Button
           size="sm"
-          className="mt-1 h-6 text-xs"
+          className="mt-1 h-6 min-h-[44px] text-xs sm:min-h-0"
           disabled={isEquipping}
           onClick={onEquip}
         >

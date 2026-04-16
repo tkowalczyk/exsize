@@ -28,7 +28,7 @@ function ItemRow({
   onDelete: (id: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border p-3">
+    <div className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between" data-testid="avatar-item-row">
       <div className="flex items-center gap-3">
         {item.type === "icon" ? (
           <Avatar icon={item.value} size="sm" />
@@ -51,11 +51,11 @@ function ItemRow({
         </div>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={() => onEdit(item)}>
+        <Button variant="outline" size="sm" className="min-h-[44px] sm:min-h-0" onClick={() => onEdit(item)}>
           Edit
         </Button>
         {item.active_in_shop && (
-          <Button variant="destructive" size="sm" onClick={() => onDelete(item.id)}>
+          <Button variant="destructive" size="sm" className="min-h-[44px] sm:min-h-0" onClick={() => onDelete(item.id)}>
             Remove
           </Button>
         )}
@@ -144,9 +144,9 @@ export default function AvatarItemsPage({ user }: AvatarItemsPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" data-testid="avatar-items-header">
         <h1 className="text-2xl font-bold">Avatar Items</h1>
-        <Button onClick={() => { resetForm(); setShowForm(true); }}>
+        <Button className="min-h-[44px] sm:min-h-0" onClick={() => { resetForm(); setShowForm(true); }}>
           Add Item
         </Button>
       </div>

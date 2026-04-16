@@ -175,4 +175,50 @@ describe("ShopPage", () => {
       expect(screen.queryByText(/unequipping/i)).not.toBeInTheDocument();
     });
   });
+
+  describe("responsive layout", () => {
+    it("avatar section header stacks vertically on mobile", async () => {
+      vi.mocked(getAvatarShopMock).mockResolvedValue([]);
+      vi.mocked(getAvatarInventoryMock).mockResolvedValue([]);
+      vi.mocked(getBalanceMock).mockResolvedValue({ balance: 0 });
+      vi.mocked(getEquippedAvatarMock).mockResolvedValue(null);
+
+      renderShopPage("child");
+      await screen.findByText("Avatars");
+
+      const header = screen.getByText("Avatars").closest("[data-testid='shop-header']");
+      expect(header).toBeInTheDocument();
+      expect(header!.className).toMatch(/flex-col/);
+      expect(header!.className).toMatch(/sm:flex-row/);
+    });
+
+    it("shop/inventory tab buttons have minimum 44px touch target on mobile", async () => {
+      vi.mocked(getAvatarShopMock).mockResolvedValue([]);
+      vi.mocked(getAvatarInventoryMock).mockResolvedValue([]);
+      vi.mocked(getBalanceMock).mockResolvedValue({ balance: 0 });
+      vi.mocked(getEquippedAvatarMock).mockResolvedValue(null);
+
+      renderShopPage("child");
+      await screen.findByText("Avatars");
+
+      const shopBtn = screen.getByRole("button", { name: "Shop" });
+      const myItemsBtn = screen.getByRole("button", { name: "My Items" });
+      expect(shopBtn.className).toMatch(/min-h-\[44px\]/);
+      expect(myItemsBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+
+    it("buy buttons have minimum 44px touch target on mobile", async () => {
+      vi.mocked(getAvatarShopMock).mockResolvedValue([
+        { id: 1, type: "icon", label: "Hat", price: 10, value: "🎩" },
+      ]);
+      vi.mocked(getAvatarInventoryMock).mockResolvedValue([]);
+      vi.mocked(getBalanceMock).mockResolvedValue({ balance: 50 });
+      vi.mocked(getEquippedAvatarMock).mockResolvedValue(null);
+
+      renderShopPage("child");
+
+      const buyBtn = await screen.findByRole("button", { name: /buy/i });
+      expect(buyBtn.className).toMatch(/min-h-\[44px\]/);
+    });
+  });
 });

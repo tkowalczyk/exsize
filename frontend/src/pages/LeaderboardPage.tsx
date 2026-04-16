@@ -60,7 +60,8 @@ function LeaderboardRow({
 
   return (
     <div
-      className={`flex items-center justify-between rounded-lg border p-3 ${
+      data-testid="leaderboard-row"
+      className={`flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between ${
         isCurrentUser ? "border-primary bg-primary/5" : ""
       }`}
     >
@@ -85,7 +86,10 @@ function FamilyLeaderboardRow({ entry, position }: { entry: LeaderboardEntry; po
   const displayName = entry.nickname ?? entry.email;
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-3">
+    <div
+      data-testid="leaderboard-row"
+      className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="flex items-center gap-3">
         <span className="w-8 text-center text-lg font-bold text-muted-foreground">
           {position}
@@ -159,6 +163,7 @@ export default function LeaderboardPage({ user }: LeaderboardPageProps) {
         <Button
           variant={tab === "global" ? "default" : "outline"}
           size="sm"
+          className="min-h-[44px] sm:min-h-0"
           onClick={() => setTab("global")}
         >
           Global
@@ -166,6 +171,7 @@ export default function LeaderboardPage({ user }: LeaderboardPageProps) {
         <Button
           variant={tab === "family" ? "default" : "outline"}
           size="sm"
+          className="min-h-[44px] sm:min-h-0"
           onClick={() => setTab("family")}
         >
           Family
