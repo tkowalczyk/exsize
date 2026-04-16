@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a7a5c" />
+  <title>ExSize — Brak połączenia</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: ABeeZee, ui-sans-serif, sans-serif, system-ui;
+      background: #0a0a0a;
+      color: #e8eaf0;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .container {
+      max-width: 400px;
+    }
+
+    .logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #1a7a5c;
+    }
+
+    p {
+      color: #a1a1aa;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: #1a7a5c;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .retry-btn:hover { opacity: 0.9; }
+    .retry-btn:active { opacity: 0.8; }
+    .retry-btn:disabled { opacity: 0.5; cursor: wait; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="/pwa-192x192.png" alt="ExSize" class="logo" />
+    <h1>ExSize</h1>
+    <p>Brak połączenia z internetem. Sprawdź swoje połączenie i spróbuj ponownie.</p>
+    <button class="retry-btn" id="retry-btn" type="button">Spróbuj ponownie</button>
+  </div>
+
+  <script>
+    document.getElementById("retry-btn").addEventListener("click", function () {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = "Sprawdzanie…";
+
+      fetch("/api/health", { method: "HEAD", cache: "no-store" })
+        .then(function () {
+          location.reload();
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = "Spróbuj ponownie";
+        });
+    });
+  </script>
+</body>
+</html>

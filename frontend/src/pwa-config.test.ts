@@ -77,4 +77,14 @@ describe("PWA config", () => {
     expect(imageRule).toBeDefined()
     expect(imageRule!.handler).toBe("CacheFirst")
   })
+
+  it("serves offline.html as navigation fallback", () => {
+    expect(pwaConfig.workbox?.navigateFallback).toBe("/offline.html")
+  })
+
+  it("excludes /api routes from navigation fallback", () => {
+    const denylist = pwaConfig.workbox?.navigateFallbackDenylist
+    expect(denylist).toBeDefined()
+    expect(denylist!.some((re) => re.test("/api/health"))).toBe(true)
+  })
 })

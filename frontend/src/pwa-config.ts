@@ -4,6 +4,8 @@ export const pwaConfig: Partial<VitePWAOptions> = {
   registerType: "autoUpdate",
   workbox: {
     globPatterns: ["**/*.{html,js,css,ico,png,svg,woff2}"],
+    navigateFallback: "/offline.html",
+    navigateFallbackDenylist: [/^\/api\//],
     runtimeCaching: [
       {
         urlPattern: /\.(?:js|css)$/,
