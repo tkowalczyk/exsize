@@ -29,3 +29,11 @@ Browse the database in a web UI:
 ```bash
 uvx datasette exsize.db
 ```
+
+## Deployment
+
+Backend is deployed on **Render** (free tier). Database is **Neon PostgreSQL**.
+
+- Render dashboard: the service auto-deploys from `main` branch
+- Environment variables on Render: `DATABASE_URL` (Neon connection string), `CORS_ORIGINS`, `PORT`
+- Cold starts on free tier take ~30s — the frontend shows a "server is waking up" message after 3s

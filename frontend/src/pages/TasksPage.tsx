@@ -68,7 +68,7 @@ export default function TasksPage({ user }: TasksPageProps) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Create task loading state
-  const { isLoading: isCreating, error: createError, execute: executeCreate } = useLoading();
+  const { isLoading: isCreating, isSlow: isCreatingSlow, error: createError, execute: executeCreate } = useLoading();
 
 
   // Photo URL state (per-task, keyed by task id)
@@ -282,6 +282,11 @@ export default function TasksPage({ user }: TasksPageProps) {
                   "Create Task"
                 )}
               </Button>
+              {isCreatingSlow && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Serwer się budzi, może to chwilę potrwać...
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>

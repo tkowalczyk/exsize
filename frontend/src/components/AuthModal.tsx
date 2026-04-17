@@ -24,7 +24,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminSecret, setAdminSecret] = useState("");
-  const { isLoading, error, execute } = useLoading();
+  const { isLoading, isSlow, error, execute } = useLoading();
   const { handleLogin } = useAuth();
 
   async function onSubmit(e: React.FormEvent) {
@@ -94,6 +94,11 @@ function LoginForm() {
           "Login"
         )}
       </Button>
+      {isSlow && (
+        <p className="text-sm text-muted-foreground text-center">
+          Serwer się budzi, może to chwilę potrwać...
+        </p>
+      )}
     </form>
   );
 }
@@ -102,7 +107,7 @@ function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"parent" | "child">("parent");
-  const { isLoading, error, execute } = useLoading();
+  const { isLoading, isSlow, error, execute } = useLoading();
   const { handleLogin } = useAuth();
 
   async function onSubmit(e: React.FormEvent) {
@@ -159,6 +164,11 @@ function RegisterForm() {
           "Register"
         )}
       </Button>
+      {isSlow && (
+        <p className="text-sm text-muted-foreground text-center">
+          Serwer się budzi, może to chwilę potrwać...
+        </p>
+      )}
     </form>
   );
 }

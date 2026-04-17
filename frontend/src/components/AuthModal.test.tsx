@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -31,6 +31,7 @@ function renderApp(route = "/") {
 describe("AuthModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("shows auth modal with login form when user is not authenticated", () => {
@@ -166,6 +167,55 @@ describe("AuthModal", () => {
     });
     expect(adminLoginMock).toHaveBeenCalledWith("my-secret");
     expect(loginMock).not.toHaveBeenCalled();
+  });
+
+  it("shows slow-loading message in login form after 3 seconds", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(loginMock).mockImplementation(
+      () => new Promise(() => {}), // never resolves
+    );
+
+    renderApp();
+    await user.type(screen.getByLabelText(/email/i), "test@test.com");
+    await user.type(screen.getByLabelText(/password/i), "password");
+
+    vi.useFakeTimers();
+    fireEvent.submit(screen.getByRole("button", { name: /^login$/i }).closest("form")!);
+
+    expect(screen.queryByText(/serwer się budzi/i)).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(screen.getByText(/serwer się budzi/i)).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("shows slow-loading message in register form after 3 seconds", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(registerMock).mockImplementation(
+      () => new Promise(() => {}),
+    );
+
+    renderApp();
+    await user.click(screen.getByRole("tab", { name: /register/i }));
+    await user.type(screen.getByLabelText(/email/i), "test@test.com");
+    await user.type(screen.getByLabelText(/password/i), "password");
+
+    vi.useFakeTimers();
+    fireEvent.submit(screen.getByRole("button", { name: /^register$/i }).closest("form")!);
+
+    expect(screen.queryByText(/serwer się budzi/i)).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(screen.getByText(/serwer się budzi/i)).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("browser back button does not bypass the modal", () => {

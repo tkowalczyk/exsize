@@ -32,7 +32,7 @@ export default function FamilyPage({ user }: FamilyPageProps) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const { isLoading: isJoining, error: joinLoadingError, execute: executeJoin } = useLoading();
+  const { isLoading: isJoining, isSlow: isJoiningSlow, error: joinLoadingError, execute: executeJoin } = useLoading();
 
   const [deletingChildId, setDeletingChildId] = useState<number | null>(null);
   const [approvingRequestId, setApprovingRequestId] = useState<number | null>(null);
@@ -179,6 +179,11 @@ export default function FamilyPage({ user }: FamilyPageProps) {
                   "Join Family"
                 )}
               </Button>
+              {isJoiningSlow && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Serwer się budzi, może to chwilę potrwać...
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>
