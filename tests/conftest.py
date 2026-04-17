@@ -1,6 +1,7 @@
 import os
 
 os.environ.setdefault("ADMIN_SECRET", "test-admin-secret")
+os.environ.setdefault("CORS_ORIGINS", "https://exsize.pages.dev")
 
 import pytest
 from fastapi.testclient import TestClient

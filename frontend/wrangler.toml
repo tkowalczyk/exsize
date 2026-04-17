@@ -2,4 +2,4 @@ name = "exsize"
 pages_build_output_dir = "./dist"
 
 [vars]
-VITE_API_URL = "https://exsize-api-prod.fly.dev"
+VITE_API_URL = "https://exsize-prod.onrender.com"
